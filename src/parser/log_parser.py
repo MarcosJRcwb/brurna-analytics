@@ -163,11 +163,24 @@ class TSELogParser:
         if self.parsed_data.empty: return
         
         valid_df = self.parsed_data[self.parsed_data['severidade'] != 'INVALID']
+        
+        # Extrai modelo de urna via regex (geralmente nas primeiras mensagens)
+        modelo_urna = None
+        # Busca no DataFrame completo, pois a mensagem de solução pode estar no início
+        # Usamos uma busca otimizada nas primeiras 500 linhas que é onde o boot acontece
+        sample = self.parsed_data['mensagem'].head(500).tolist()
+        for msg in sample:
+            match = re.search(r'(UE\d{4})', msg, re.IGNORECASE)
+            if match:
+                modelo_urna = match.group(1).upper()
+                break
+
         if not valid_df.empty:
             self.metadata = {
                 'total_linhas': len(self.parsed_data),
                 'linhas_validas': len(valid_df),
                 'periodo_inicio': valid_df['timestamp'].min(),
                 'periodo_fim': valid_df['timestamp'].max(),
-                'id_ue': valid_df['id_ue'].iloc[0] if 'id_ue' in valid_df.columns else None
+                'id_ue': valid_df['id_ue'].iloc[0] if 'id_ue' in valid_df.columns else None,
+                'modelo_urna': modelo_urna
             }

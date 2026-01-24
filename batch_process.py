@@ -42,12 +42,12 @@ def save_metadata_batch(metadata_list: List[Dict]):
                 INSERT INTO section_metadata (
                     uf, turno, municipio_codigo, zona, secao,
                     total_eventos, periodo_inicio, periodo_fim, duracao_segundos,
-                    aplicativos_usados, severidades, hash_arquivo
+                    modelo_urna, aplicativos_usados, severidades, hash_arquivo
                 )
                 VALUES (
                     :uf, :turno, :municipio_codigo, :zona, :secao,
                     :total_eventos, :periodo_inicio, :periodo_fim, :duracao_segundos,
-                    :aplicativos_usados, :severidades, :hash_arquivo
+                    :modelo_urna, :aplicativos_usados, :severidades, :hash_arquivo
                 )
                 ON CONFLICT (uf, turno, municipio_codigo, zona, secao)
                 DO UPDATE SET
@@ -55,6 +55,7 @@ def save_metadata_batch(metadata_list: List[Dict]):
                     periodo_inicio = EXCLUDED.periodo_inicio,
                     periodo_fim = EXCLUDED.periodo_fim,
                     duracao_segundos = EXCLUDED.duracao_segundos,
+                    modelo_urna = EXCLUDED.modelo_urna,
                     aplicativos_usados = EXCLUDED.aplicativos_usados,
                     severidades = EXCLUDED.severidades,
                     hash_arquivo = EXCLUDED.hash_arquivo
@@ -68,6 +69,7 @@ def save_metadata_batch(metadata_list: List[Dict]):
                 'periodo_inicio': metadata.get('periodo_inicio'),
                 'periodo_fim': metadata.get('periodo_fim'),
                 'duracao_segundos': metadata.get('duracao_segundos'),
+                'modelo_urna': metadata.get('modelo_urna'),
                 'aplicativos_usados': metadata.get('aplicativos_usados', []),
                 'severidades': severidades_json,
                 'hash_arquivo': metadata.get('hash_arquivo')
@@ -84,6 +86,9 @@ def process_worker(args: Tuple[Path, str, int]) -> Tuple[pd.DataFrame, pd.DataFr
         parser = TSELogParser(str(file_path))
         df = parser.parse_file()
         secao_info = parser._extract_section_info_from_filename()
+        # Adiciona modelo extraído do parser no secao_info
+        secao_info['modelo_urna'] = parser.metadata.get('modelo_urna')
+        
         p, t, m = aggregate_logs(df, uf, turno, secao_info)
         return p, t, m, True, ""
     except Exception as e:

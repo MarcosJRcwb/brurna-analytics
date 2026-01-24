@@ -183,6 +183,9 @@ def extract_section_metadata(
     periodo_fim = df_valid['timestamp'].max()
     duracao_segundos = int((periodo_fim - periodo_inicio).total_seconds()) if pd.notna(periodo_inicio) and pd.notna(periodo_fim) else 0
     
+    # Modelo de Urna (capturado pelo parser)
+    modelo_urna = secao_info.get('modelo_urna')
+    
     # Lista de aplicativos usados
     aplicativos_usados = df_valid['aplicativo'].dropna().unique().tolist()
     
@@ -199,6 +202,7 @@ def extract_section_metadata(
         'periodo_inicio': periodo_inicio,
         'periodo_fim': periodo_fim,
         'duracao_segundos': duracao_segundos,
+        'modelo_urna': modelo_urna,
         'aplicativos_usados': aplicativos_usados,
         'severidades': severidades,
         'hash_arquivo': hash_arquivo
@@ -220,7 +224,7 @@ def aggregate_logs(
         df: DataFrame com logs brutos
         uf: Unidade Federativa
         turno: Número do turno
-        secao_info: Dicionário com informações da seção (municipio, zona, secao, hash)
+        secao_info: Dicionário com informações da seção (municipio, zona, secao, hash, modelo_urna)
         
     Returns:
         Tupla com:
@@ -244,8 +248,12 @@ def aggregate_logs(
         municipio_codigo=secao_info.get('municipio_codigo'),
         zona=secao_info.get('zona'),
         secao=secao_info.get('secao'),
-        hash_arquivo=secao_info.get('hash_arquivo')
+        hash_arquivo=secao_info.get('hash_arquivo'),
+        # Passamos as infos extras de secao_info para o metadata
     )
+    # Garante que modelo_urna de secao_info entre no metadata final se não foi extraído antes
+    if 'modelo_urna' in secao_info and not metadata.get('modelo_urna'):
+        metadata['modelo_urna'] = secao_info['modelo_urna']
     
     return patterns, temporal, metadata
 
