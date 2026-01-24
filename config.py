@@ -75,7 +75,7 @@ config.setup_directories()
 @dataclass
 class ParallelConfig:
     """Configurações de paralelismo"""
-    MAX_DOWNLOAD_WORKERS: int = 10
+    MAX_DOWNLOAD_WORKERS: int = 25
     MAX_DOWNLOAD_RETRIES: int = 3
     DOWNLOAD_TIMEOUT: int = 30
     MAX_PARSE_WORKERS: int = 4

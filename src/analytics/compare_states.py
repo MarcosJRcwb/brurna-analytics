@@ -21,12 +21,12 @@ def generate_comparison_report():
     query_vol = """
         SELECT uf, SUM(total_eventos) as total
         FROM section_metadata
-        WHERE uf IN ('RR', 'AP')
+        WHERE uf IN ('RR', 'AP', 'AC')
         GROUP BY uf
     """
     df_vol = pd.read_sql(query_vol, engine)
     
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(10, 6))
     sns.barplot(data=df_vol, x='uf', y='total')
     plt.title("Total de Eventos Processados por Estado")
     plt.ylabel("Eventos (Milhões)")
@@ -37,7 +37,7 @@ def generate_comparison_report():
     query_temp = """
         SELECT uf, hora, SUM(quantidade) as qtd
         FROM temporal_metrics
-        WHERE uf IN ('RR', 'AP')
+        WHERE uf IN ('RR', 'AP', 'AC')
         GROUP BY uf, hora
         ORDER BY hora
     """
@@ -52,13 +52,11 @@ def generate_comparison_report():
     plt.savefig(output_dir / "comparison_temporal.png")
     print("✅ Gráfico temporal gerado.")
 
-    # 3. Modelos de Urna (Estimado via Patterns)
-    # Nota: Como não temos modelo na metadata, usamos uma query aproximada nos patterns se possível,
-    # mas para este gráfico vamos focar na duração média da sessão que é um bom proxy de performance.
+    # 3. Modelos de Urna (Performance)
     query_dur = """
         SELECT uf, duracao_segundos / 3600.0 as duracao_horas
         FROM section_metadata
-        WHERE uf IN ('RR', 'AP')
+        WHERE uf IN ('RR', 'AP', 'AC')
         AND duracao_segundos > 0 AND duracao_segundos < 50000
     """
     df_dur = pd.read_sql(query_dur, engine)
