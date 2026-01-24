@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Project Specific Data
+C:\Users\marco\Downloads\TSE/
+data/
+logs/
+*.parquet
+*.csv
+*.txt
+*.dat
+*.logjez
+*.rdv
+*.imgbuz
+*.vscmrz
+*.bucmrz
+
+# Configuration & Secrets
+.env
+backup_logs_metadata.txt
+
+# IDEs
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
