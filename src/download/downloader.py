@@ -3,10 +3,12 @@ import pandas as pd
 from time import sleep
 from pathlib import Path
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
 # Adicionar path para importar config
 sys.path.append(str(Path(__file__).parent.parent.parent))
-from config import config
+from config import config, parallel_config
 
 class TSEDownloader:
     def __init__(self):
@@ -17,8 +19,11 @@ class TSEDownloader:
     
     def download_file(self, url: str, dest_file: Path):
         """Baixa um arquivo individual"""
-        print(f"    Baixando: {url}")
+        # print(f"    Baixando: {url}") # Verbose demais para paralelo
         try:
+            if dest_file.exists():
+                return True # Skip se já existe
+
             response = requests.get(url, headers=self.headers, stream=True)
             response.raise_for_status()
             
@@ -28,10 +33,9 @@ class TSEDownloader:
             with open(dest_file, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=100000):
                     f.write(chunk)
-            print(f"    ✅ Salvo em: {dest_file}")
             return True
         except Exception as e:
-            print(f"    ❌ Erro ao baixar: {e}")
+            # print(f"    ❌ Erro ao baixar: {e}")
             return False
     
     def get_info_files(self, cd_uf, cd_municipio, cd_zona, cd_secao):
@@ -42,12 +46,12 @@ class TSEDownloader:
             r.raise_for_status()
             return r.json()
         except Exception as e:
-            print(f"    ❌ Erro ao obter metadados: {e}")
+            # print(f"    ❌ Erro ao obter metadados: {e}")
             return None
     
     def download_section(self, uf: str, municipio_cod: str, municipio_nome: str, zona: str, secao: str):
         """Baixa todos os arquivos de uma seção"""
-        print(f"  Processando: {municipio_nome} - Zona {zona} - Seção {secao}")
+        # print(f"  Processando: {municipio_nome} - Zona {zona} - Seção {secao}")
         
         # Obter metadados
         hash_data = self.get_info_files(uf, municipio_cod, zona, secao)
@@ -68,7 +72,7 @@ class TSEDownloader:
         return success
     
     def download_uf(self, uf: str, limit: int = None):
-        """Baixa logs de uma UF específica"""
+        """Baixa logs de uma UF específica em PARALELO"""
         print(f"Coletando metadados da UF {uf}...")
         
         # URL de configuração da UF
@@ -100,32 +104,40 @@ class TSEDownloader:
             print(f"Limitado às primeiras {limit} seções")
         
         print(f"Total de seções para download: {len(df)}")
+        print(f"🚀 Iniciando download PARALELO com {parallel_config.MAX_DOWNLOAD_WORKERS} workers...")
         
-        # Baixar cada seção
         success_count = 0
-        for idx, row in df.iterrows():
-            print(f"\nSeção {idx+1}/{len(df)}:")
+        
+        # Executor Paralelo
+        with ThreadPoolExecutor(max_workers=parallel_config.MAX_DOWNLOAD_WORKERS) as executor:
+            # Submete tarefas
+            futures = {
+                executor.submit(
+                    self.download_section,
+                    row['uf'],
+                    row['municipio_codigo'],
+                    row['municipio_nome'],
+                    row['zona'],
+                    row['secao']
+                ): idx for idx, row in df.iterrows()
+            }
             
-            baixado = self.download_section(
-                row['uf'],
-                row['municipio_codigo'],
-                row['municipio_nome'],
-                row['zona'],
-                row['secao']
-            )
-            
-            df.at[idx, 'baixado'] = baixado
-            if baixado:
-                success_count += 1
-            
-            # Pequena pausa
-            sleep(1)
+            # Barra de progresso com TQDM
+            for future in tqdm(as_completed(futures), total=len(futures), desc=f"Baixando {uf.upper()}", unit="seção"):
+                idx = futures[future]
+                try:
+                    baixado = future.result()
+                    df.at[idx, 'baixado'] = baixado
+                    if baixado:
+                        success_count += 1
+                except Exception as e:
+                    print(f"❌ Erro na tarefa {idx}: {e}")
         
         print(f"\n✅ Download concluído: {success_count}/{len(df)} seções baixadas")
         return df
 
 if __name__ == "__main__":
-    # Teste rápido com 1 seção
+    # Teste rápido com 5 seções
     downloader = TSEDownloader()
-    df = downloader.download_uf("ac", limit=1)
+    df = downloader.download_uf("ac", limit=5)
     print(f"\nResumo: {len(df)} seção(s) processada(s)")

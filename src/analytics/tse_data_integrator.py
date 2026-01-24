@@ -156,11 +156,12 @@ class TSEDataDownloader:
             print(f"❌ Erro ao carregar CSV: {e}")
             return pd.DataFrame()
     
-    def load_detalhe_votacao_secao(self) -> pd.DataFrame:
+    def load_detalhe_votacao_secao(self, uf: str = None) -> pd.DataFrame:
         """
-        Carrega detalhes de votação por seção (nacional).
+        Carrega detalhes de votação por seção.
         
-        ATENÇÃO: Arquivo muito grande (>1GB)
+        Args:
+            uf: Unidade Federativa (opcional, para filtrar arquivo específico)
         
         Returns:
             DataFrame com detalhes por seção
@@ -173,14 +174,29 @@ class TSEDataDownloader:
         # Extrai
         extract_dir = self.extract_zip(zip_path)
         
-        # Encontra CSV
-        csv_files = list(extract_dir.glob('*.csv'))
+        # Seleciona o arquivo CSV correto
+        if uf:
+            # Tenta encontrar o arquivo específico do estado
+            pattern = f"*_{uf.upper()}.csv"
+            csv_files = list(extract_dir.glob(pattern))
+            if not csv_files:
+                print(f"⚠️ Arquivo específico para {uf} não encontrado. Tentando BRASIL...")
+                csv_files = list(extract_dir.glob("*_BRASIL.csv"))
+        else:
+            # Se não tem UF, tenta o BRASIL
+            csv_files = list(extract_dir.glob("*_BRASIL.csv"))
+            if not csv_files:
+                # Se não tem BRASIL, pega qualquer um (comportamento antigo, mas arriscado)
+                csv_files = list(extract_dir.glob('*.csv'))
+
         if not csv_files:
+            print(f"❌ Nenhum CSV encontrado em: {extract_dir}")
             return pd.DataFrame()
         
         csv_file = csv_files[0]
         
-        print(f"⚠️  ATENÇÃO: Arquivo grande ({csv_file.stat().st_size / (1024**3):.2f} GB)")
+        print(f"📊 Carregando: {csv_file.name} ({csv_file.stat().st_size / (1024**3):.2f} GB)")
+
         print(f"📊 Carregando em chunks...")
         
         # Carrega apenas colunas relevantes
@@ -210,7 +226,9 @@ class TSEDataDownloader:
             return df
             
         except Exception as e:
-            print(f"❌ Erro ao carregar: {e}")
+            print(f"❌ Erro ao carregar CSV: {e}")
+            import traceback
+            traceback.print_exc()
             return pd.DataFrame()
 
 
@@ -315,7 +333,7 @@ class TSEDataIntegrator:
         """
         # Carrega detalhes (inclui modelo de urna)
         print("\n📥 Baixando detalhes de votação (inclui modelo de urna)...")
-        detalhes_df = self.downloader.load_detalhe_votacao_secao()
+        detalhes_df = self.downloader.load_detalhe_votacao_secao(uf=uf)
         
         if detalhes_df.empty:
             print("❌ Não foi possível carregar detalhes")
