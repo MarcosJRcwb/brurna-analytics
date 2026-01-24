@@ -15,6 +15,13 @@ from config import config
 from src.analytics.critical_anomaly_detector import CriticalAnomalyDetector
 from src.analytics.outlier_detector import OutlierDetector
 
+# Paleta de cores para consistência
+STATE_COLORS = {
+    'RR': '#3498db', # Azul
+    'AP': '#2ecc71', # Verde
+    'AC': '#e74c3c'  # Vermelho
+}
+
 class BrurnaMasterPipeline:
     """Orquestrador de Pipeline Multi-Especialista para Brurna Analytics"""
     
@@ -134,15 +141,15 @@ class BrurnaMasterPipeline:
             doc.append(f"| **{uf}** | {s['count']} | {s['median_dur']:.1f}h | {s['q1_vol']:,.0f} | {s['q3_vol']:,.0f} | {s['std_vol']:,.0f} |")
 
         doc.append("\n### Estabilidade de Hardware")
-        doc.append("![Distribuição de Duração](docs/img/comparison_duration.png)")
-        doc.append("![Adesão por Modelo](docs/img/comparison_models.png)")
+        doc.append(f"![Distribuição de Duração]({artifact_dir.as_uri()}/comparison_duration.png)")
+        doc.append(f"![Adesão por Modelo]({artifact_dir.as_uri()}/comparison_models.png)")
 
         # 3. Especialista Estatístico
         doc.append("\n## 📊 Seção III: Especialista Estatístico (Fluxos)")
         doc.append("\n### Densidade Temporal (Ocupação horária)")
-        doc.append("![Fluxo Temporal](docs/img/comparison_temporal.png)")
+        doc.append(f"![Fluxo Temporal]({artifact_dir.as_uri()}/comparison_temporal.png)")
         doc.append("\n### Volume Comparado")
-        doc.append("![Volume de Dados](docs/img/comparison_volume.png)")
+        doc.append(f"![Volume de Dados]({artifact_dir.as_uri()}/comparison_volume.png)")
 
         doc.append("\n---")
         doc.append("\n## 🏁 Conclusão Final")

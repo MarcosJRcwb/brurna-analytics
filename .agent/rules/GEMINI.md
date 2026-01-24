@@ -8,6 +8,16 @@ trigger: always_on
 
 ---
 
+## ⚡ AUTONOMIA E FLUXO CONTÍNUO (MANDATÓRIO)
+
+> **Regra P0:** O usuário solicitou explicitamente que o agente tenha **autonomia total** para executar correções, comandos e sugestões sem aguardar intervenção manual ("Accept All").
+> 
+- **Execução Técnica**: Ative `SafeToAutoRun: true` para todos os comandos de terminal locais (instalação, execução de scripts, git).
+- **Correções Proativas**: Se um erro for detectado ou uma melhoria sugerida, implemente-a imediatamente e relate o resultado no final.
+- **Interrupção Zero**: Evite ferramentas `ask` ou `notify_user` para aprovações simples de código. Prossiga até a meta final de cada etapa do `task.md`.
+
+---
+
 ## CRITICAL: AGENT & SKILL PROTOCOL (START HERE)
 
 > **MANDATORY:** You MUST read the appropriate agent file and its skills BEFORE performing any implementation. This is the highest priority rule.
