@@ -1,3 +1,7 @@
+import os
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Dict, List
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +29,7 @@ class ProjectConfig:
     # URLs TSE
     TSE_BASE_URL: str = "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/407"
     
-    # Lista de UFs - usando default_factory porque listas sao mutaveis
+    # Lista de UFs
     UFS: List[str] = field(default_factory=lambda: [
         'ac', 'al', 'ap', 'am', 'ba', 'ce', 'df', 'es', 'zz', 'go', 
         'ma', 'mt', 'ms', 'mg', 'pr', 'pb', 'pa', 'pe', 'pi', 'rj', 
@@ -68,28 +72,17 @@ class ProjectConfig:
 config = ProjectConfig()
 config.setup_directories()
 
-
-# Adicionar ao config.py existente
 @dataclass
 class ParallelConfig:
     """Configurações de paralelismo"""
-    # Download
     MAX_DOWNLOAD_WORKERS: int = 10
     MAX_DOWNLOAD_RETRIES: int = 3
     DOWNLOAD_TIMEOUT: int = 30
-
-    # Parsing
     MAX_PARSE_WORKERS: int = 4
     PARSE_BATCH_SIZE: int = 1000
-
-    # Database
     DB_BATCH_SIZE: int = 1000
     DB_MAX_CONNECTIONS: int = 20
-
-    # Monitoramento
     PROGRESS_REFRESH: int = 1  # segundos
     LOG_INTERVAL: int = 1000  # linhas
 
-
-# Adicionar ao final do config.py existente
 parallel_config = ParallelConfig()
