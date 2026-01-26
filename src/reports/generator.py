@@ -37,8 +37,9 @@ class ReportGenerator:
         elif "/to/" in source_file.lower() or "\\to\\" in source_file.lower(): uf = "TO"
         elif "/se/" in source_file.lower() or "\\se\\" in source_file.lower(): uf = "SE"
         
-        # Regex para o padrão TSE: o00407-[MUN][ZON][SEC]
-        match = re.search(r'o\d{5}-(\d{5})(\d{4})(\d{5})', filename)
+        # Regex para o padrão TSE: o00407-[MUN-5][ZON-4][SEC-var]
+        # Ex: o00407-0601200010045 -> MUN:06012, ZON:0001, SEC:0045
+        match = re.search(r'o00407-(\d{5})(\d{4})(\d+)', filename)
         if match:
             mun, zon, sec = match.groups()
             return uf, mun, zon, sec

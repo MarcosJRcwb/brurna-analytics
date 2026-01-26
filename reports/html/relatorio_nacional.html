@@ -98,31 +98,63 @@
     <h2>Análise Nacional Consolidada</h2>
     
     <div class="metric">
-        <strong>Período de Análise:</strong> 26/01/2026 08:11<br>
-        <strong>Estados Analisados:</strong> AC, AP, RR, TO, SE<br>
-        <strong>Total de Logs Processados:</strong> 253,299<br>
-        <strong>Total de Seções Analisadas:</strong> 629
+        <strong>Período de Análise:</strong> 26/01/2026 17:21<br>
+        <strong>Consolidação:</strong> Nacional (Amostra Piloto)<br>
+        <strong>Total de Logs:</strong> 423,014<br>
+        <strong>Total de Seções:</strong> 1,000
     </div>
     
-    <h3>Distribuição por Unidade Federativa</h3>
+    <h2>1. Consolidação Regional</h2>
+    <table>
+        <tr>
+            <th>Região</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+        </tr>
+        <tr><td>Norte</td><td>321</td><td>1</td></tr> <tr><td>Outros</td><td>422,693</td><td>999</td></tr>
+    </table>
+
+    <h2>2. Consolidação por Unidade Federativa (UF)</h2>
     <table>
         <tr>
             <th>UF</th>
+            <th>Região</th>
             <th>Total de Logs</th>
             <th>Seções</th>
-            <th>% do Total</th>
         </tr>
-
-        <tr>
-            <td><strong>Outros</strong></td>
-            <td>253,299</td>
-            <td>629</td>
-            <td>100.00%</td>
-        </tr>
-
+        <tr><td>AP</td><td>Norte</td><td>321</td><td>1</td></tr> <tr><td>EXT</td><td>Outros</td><td>422,693</td><td>999</td></tr>
     </table>
-    
-    <h2>I. Sumário Executivo</h2>
+
+    <div class="page-break"></div>
+
+    <h2>3. Detalhamento por Município (Top 10)</h2>
+    <p>Consolidação baseada no código de município do TSE extraído dos metadados das urnas.</p>
+    <table>
+        <tr>
+            <th>UF</th>
+            <th>Cód. Município</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+        </tr>
+        <tr><td>AP</td><td>06050</td><td>321</td><td>1</td></tr> <tr><td>EXT</td><td>01007</td><td>28,094</td><td>35</td></tr> <tr><td>EXT</td><td>01015</td><td>18,304</td><td>31</td></tr> <tr><td>EXT</td><td>01023</td><td>20,012</td><td>53</td></tr> <tr><td>EXT</td><td>01031</td><td>4,572</td><td>13</td></tr> <tr><td>EXT</td><td>01040</td><td>19,645</td><td>42</td></tr> <tr><td>EXT</td><td>01058</td><td>9,653</td><td>26</td></tr> <tr><td>EXT</td><td>03000</td><td>10,788</td><td>26</td></tr> <tr><td>EXT</td><td>03018</td><td>59,744</td><td>174</td></tr> <tr><td>EXT</td><td>06009</td><td>5,120</td><td>15</td></tr>
+    </table>
+
+    <h2>4. Detalhamento por Zona Eleitoral (Top 10)</h2>
+    <table>
+        <tr>
+            <th>UF</th>
+            <th>Município</th>
+            <th>Zona</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+        </tr>
+        <tr><td>AP</td><td>06050</td><td>0002</td><td>321</td><td>1</td></tr> <tr><td>EXT</td><td>01007</td><td>0009</td><td>28,094</td><td>35</td></tr> <tr><td>EXT</td><td>01015</td><td>0002</td><td>18,304</td><td>31</td></tr> <tr><td>EXT</td><td>01023</td><td>0001</td><td>20,012</td><td>53</td></tr> <tr><td>EXT</td><td>01031</td><td>0003</td><td>4,572</td><td>13</td></tr> <tr><td>EXT</td><td>01040</td><td>0004</td><td>19,645</td><td>42</td></tr> <tr><td>EXT</td><td>01058</td><td>0006</td><td>9,653</td><td>26</td></tr> <tr><td>EXT</td><td>03000</td><td>0004</td><td>10,788</td><td>26</td></tr> <tr><td>EXT</td><td>03018</td><td>0001</td><td>59,744</td><td>174</td></tr> <tr><td>EXT</td><td>06009</td><td>0001</td><td>5,120</td><td>15</td></tr>
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>I. Sumário Executivo do Motor Analítico</h2>
+    <p>O motor processou as 500 hipóteses através de consultas massivas ao banco de dados PostgreSQL indexado, permitindo a validação de grandes volumes (423k+ linhas) em alta performance.</p>
     <div class="metric">
         <strong>Cobertura de Hipóteses:</strong> 99.8% (500 de 500)<br>
         <strong>Anomalias Detectadas:</strong> 4<br>
@@ -143,7 +175,7 @@
         Não há perda de dados durante a troca de bateria (memória não volátil).</p>
         
         <p><strong>Observação Técnica:</strong><br>
-        Found 820 logs matching keywords: ['bateria', 'battery', 'carga']</p>
+        Found 20918 logs matching keywords: ['bateria', 'battery', 'carga']</p>
         
         <h4>Rastreabilidade e Evidências</h4>
 
@@ -180,7 +212,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
 
 <strong>Linha Original do Log:</strong>
 
@@ -206,7 +238,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
 
 <strong>Linha Original do Log:</strong>
 
@@ -221,7 +253,7 @@
         Não há logs compartilhando a mesma assinatura digital em seções diferentes.</p>
         
         <p><strong>Observação Técnica:</strong><br>
-        Found 14907 logs matching keywords: ['assinatura', 'sign', 'hash']</p>
+        Found 309317 logs matching keywords: ['assinatura', 'sign', 'hash']</p>
         
         <h4>Rastreabilidade e Evidências</h4>
 
@@ -258,7 +290,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
 
 <strong>Linha Original do Log:</strong>
 
@@ -284,7 +316,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
 
 <strong>Linha Original do Log:</strong>
 
@@ -299,7 +331,7 @@
         Arquivos ocultos ou estranhos não existem na mídia de resultados.</p>
         
         <p><strong>Observação Técnica:</strong><br>
-        Found 164 logs matching keywords: ['arquivos']</p>
+        Found 3586 logs matching keywords: ['arquivos']</p>
         
         <h4>Rastreabilidade e Evidências</h4>
 
@@ -336,7 +368,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
 
 <strong>Linha Original do Log:</strong>
 
@@ -362,7 +394,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
 
 <strong>Linha Original do Log:</strong>
 
@@ -414,7 +446,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
 
 <strong>Linha Original do Log:</strong>
 
@@ -440,7 +472,7 @@
             <strong>Código:</strong> 67305985
         </div>
         <div class="log-excerpt">
-<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
 
 <strong>Linha Original do Log:</strong>
 
@@ -487,7 +519,7 @@
         legislação vigente e jurisprudência, mas não constituem decisão judicial. Uso restrito para fins de 
         auditoria interna e transparência eleitoral.</p>
         
-        <p><strong>Gerado em:</strong> 26/01/2026 às 08:11:46</p>
+        <p><strong>Gerado em:</strong> 26/01/2026 às 17:21:43</p>
         <p><strong>Sistema:</strong> Brurna Analytics v1.0 | <strong>Agente:</strong> TSE Justice</p>
         <p><strong>Metodologia:</strong> Análise estatística via SQL + Machine Learning (Isolation Forest, sklearn 1.8.0)</p>
     </div>
