@@ -21,6 +21,9 @@ src_path = Path(__file__).parent / "src"
 sys.path.append(str(src_path))
 
 from config import config
+from parser.log_parser import TSELogParser
+from analytics.aggregator import aggregate_logs, aggregate_patterns, aggregate_temporal
+from database.db_writer import save_log_patterns, save_temporal_metrics, save_section_metadata_batch
 
 app = typer.Typer(help="Orquestrador Paralelo BRURNA Analytics")
 
@@ -103,38 +106,35 @@ class ParallelProcessor:
 
             # Parse do arquivo
             parser = TSELogParser(str(task.download_path))
-            df = parser.parse_file(uf=task.uf, turno=task.turno)
-
+            df = parser.parse_file()
+            
             if df.empty:
                 task.status = ProcessStatus.FAILED
                 task.error = "Nenhum dado extraído"
                 return task
 
-            task.parsed_data = df
+            # Agregação (Nova lógica)
+            secao_info = parser._extract_section_info_from_filename()
+            secao_info['modelo_urna'] = parser.metadata.get('modelo_urna')
+            
+            patterns, temporal, metadata = aggregate_logs(df, uf=task.uf, turno=task.turno, secao_info=secao_info)
+            
+            task.parsed_data = {
+                'patterns': patterns,
+                'temporal': temporal,
+                'metadata': metadata
+            }
             task.status = ProcessStatus.SAVING
 
         except Exception as e:
             task.status = ProcessStatus.FAILED
-            task.error = str(e)
+            task.error = f"{type(e).__name__}: {str(e)}"
+            return task
 
         return task
 
     def save_to_database(self, task: SectionTask) -> SectionTask:
-        """Salva dados no banco"""
-        try:
-            from database.db_writer import save_parsed_logs
-
-            if task.parsed_data is not None and not task.parsed_data.empty:
-                save_parsed_logs(task.parsed_data, uf=task.uf, turno=task.turno)
-                task.status = ProcessStatus.COMPLETED
-            else:
-                task.status = ProcessStatus.FAILED
-                task.error = "Sem dados para salvar"
-
-        except Exception as e:
-            task.status = ProcessStatus.FAILED
-            task.error = str(e)
-
+        """Deprecated: Agora o salvamento é feito em lote"""
         return task
 
     async def process_uf_parallel(self, uf: str, limit: int = None,
@@ -212,13 +212,59 @@ class ParallelProcessor:
                            if t.status == ProcessStatus.SAVING]
                 print(f"✅ Parsing completos: {len(to_save)}/{len(to_parse)}")
 
-                # Fase 3: Salvamento no banco
-                print("\n💾 FASE 3 - Salvamento no Banco")
-                for task in to_save:
-                    self.save_to_database(task)
-                    pbar_db.update(1)
+                # Fase 3: Salvamento no banco (Agora em lotes incrementais para resiliência!)
+                print("\n💾 FASE 3 - Salvamento no Banco (Incremental Batches)")
+                
+                BATCH_SAVE_SIZE = 250
+                processed_count = 0
+                
+                for i in range(0, len(to_save), BATCH_SAVE_SIZE):
+                    batch = to_save[i:i + BATCH_SAVE_SIZE]
+                    
+                    batch_patterns = []
+                    batch_temporal = []
+                    batch_metadata = []
+                    
+                    for task in batch:
+                        if task.parsed_data:
+                            batch_patterns.append(task.parsed_data['patterns'])
+                            batch_temporal.append(task.parsed_data['temporal'])
+                            batch_metadata.append(task.parsed_data['metadata'])
+                    
+                    if batch_patterns:
+                        # Consolida padrões do lote
+                        final_patterns = pd.concat(batch_patterns).groupby(
+                            ['mensagem_padrao', 'severidade', 'aplicativo', 'mensagem_exemplo']
+                        ).agg({
+                            'ocorrencias': 'sum',
+                            'primeira_ocorrencia': 'min',
+                            'ultima_ocorrencia': 'max'
+                        }).reset_index()
+                        save_log_patterns(final_patterns, uf=uf, turno=1)
+                        
+                    if batch_temporal:
+                        # Consolida métricas temporais do lote
+                        final_temporal = pd.concat(batch_temporal).groupby(
+                            ['data', 'hora', 'aplicativo', 'severidade']
+                        ).agg({
+                            'quantidade': 'sum'
+                        }).reset_index()
+                        save_temporal_metrics(final_temporal, uf=uf, turno=1)
+                        
+                    if batch_metadata:
+                        # Filtra metadados vazios e salva lote
+                        valid_metadata = [m for m in batch_metadata if m and m.get('uf')]
+                        if valid_metadata:
+                            save_section_metadata_batch(valid_metadata)
+                    
+                    processed_count += len(batch)
+                    pbar_db.update(len(batch))
+                    print(f"   📊 Progresso DB: {processed_count}/{len(to_save)} seções salvas.")
 
-                print(f"✅ Salvamento completos: {len(to_save)}/{len(to_parse)}")
+                # Marca tudo como concluído
+                for task in tasks:
+                    if task.status == ProcessStatus.SAVING:
+                        task.status = ProcessStatus.COMPLETED
 
             # Estatísticas finais
             completed = sum(1 for t in tasks if t.status == ProcessStatus.COMPLETED)

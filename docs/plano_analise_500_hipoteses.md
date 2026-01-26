@@ -1,0 +1,536 @@
+# Protocolo de Inteligência Avançada: 500 Hipóteses Organizadas
+
+Documento reestruturado por complexidade e viabilidade técnica.
+
+## 🎯 1. Dinâmica Temporal
+
+### 1.1 Complexidade Baixa
+- **H001**: A velocidade de voto (VPH) no período manhã (08h-11h) é consistente entre seções da mesma zona.
+- **H002**: O desvio padrão da velocidade de voto (VPH) em manhã (08h-11h) não excede 15% em capitais.
+- **H003**: A total de votos no período manhã (08h-11h) é consistente entre seções da mesma zona.
+- **H004**: O desvio padrão da total de votos em manhã (08h-11h) não excede 15% em capitais.
+- **H005**: A comparecimento no período manhã (08h-11h) é consistente entre seções da mesma zona.
+- **H006**: O desvio padrão da comparecimento em manhã (08h-11h) não excede 15% em capitais.
+- **H007**: A velocidade de voto (VPH) no período almoço (12h-13h) é consistente entre seções da mesma zona.
+- **H008**: O desvio padrão da velocidade de voto (VPH) em almoço (12h-13h) não excede 15% em capitais.
+- **H009**: A total de votos no período almoço (12h-13h) é consistente entre seções da mesma zona.
+- **H010**: O desvio padrão da total de votos em almoço (12h-13h) não excede 15% em capitais.
+- **H011**: A comparecimento no período almoço (12h-13h) é consistente entre seções da mesma zona.
+- **H012**: O desvio padrão da comparecimento em almoço (12h-13h) não excede 15% em capitais.
+- **H013**: A velocidade de voto (VPH) no período tarde (14h-16h) é consistente entre seções da mesma zona.
+- **H014**: O desvio padrão da velocidade de voto (VPH) em tarde (14h-16h) não excede 15% em capitais.
+- **H015**: A total de votos no período tarde (14h-16h) é consistente entre seções da mesma zona.
+- **H016**: O desvio padrão da total de votos em tarde (14h-16h) não excede 15% em capitais.
+- **H017**: A comparecimento no período tarde (14h-16h) é consistente entre seções da mesma zona.
+- **H018**: O desvio padrão da comparecimento em tarde (14h-16h) não excede 15% em capitais.
+- **H019**: A velocidade de voto (VPH) no período fim (16h-17h) é consistente entre seções da mesma zona.
+- **H020**: O desvio padrão da velocidade de voto (VPH) em fim (16h-17h) não excede 15% em capitais.
+- **H021**: A total de votos no período fim (16h-17h) é consistente entre seções da mesma zona.
+- **H022**: O desvio padrão da total de votos em fim (16h-17h) não excede 15% em capitais.
+- **H023**: A comparecimento no período fim (16h-17h) é consistente entre seções da mesma zona.
+- **H024**: O desvio padrão da comparecimento em fim (16h-17h) não excede 15% em capitais.
+- **H025**: A velocidade de voto (VPH) no período abertura (08h) é consistente entre seções da mesma zona.
+- **H026**: O desvio padrão da velocidade de voto (VPH) em abertura (08h) não excede 15% em capitais.
+- **H027**: A total de votos no período abertura (08h) é consistente entre seções da mesma zona.
+- **H028**: O desvio padrão da total de votos em abertura (08h) não excede 15% em capitais.
+- **H029**: A comparecimento no período abertura (08h) é consistente entre seções da mesma zona.
+- **H030**: O desvio padrão da comparecimento em abertura (08h) não excede 15% em capitais.
+- **H031**: Análise de tendência linear de VPH no minuto 300 do dia.
+- **H032**: Análise de tendência linear de VPH no minuto 310 do dia.
+- **H033**: Análise de tendência linear de VPH no minuto 320 do dia.
+- **H034**: Análise de tendência linear de VPH no minuto 330 do dia.
+- **H035**: Análise de tendência linear de VPH no minuto 340 do dia.
+- **H036**: Análise de tendência linear de VPH no minuto 350 do dia.
+- **H037**: Análise de tendência linear de VPH no minuto 360 do dia.
+- **H038**: Análise de tendência linear de VPH no minuto 370 do dia.
+- **H039**: Análise de tendência linear de VPH no minuto 380 do dia.
+- **H040**: Análise de tendência linear de VPH no minuto 390 do dia.
+- **H041**: Análise de tendência linear de VPH no minuto 400 do dia.
+- **H042**: Análise de tendência linear de VPH no minuto 410 do dia.
+- **H043**: Análise de tendência linear de VPH no minuto 420 do dia.
+- **H044**: Análise de tendência linear de VPH no minuto 430 do dia.
+- **H045**: Análise de tendência linear de VPH no minuto 440 do dia.
+- **H046**: Análise de tendência linear de VPH no minuto 450 do dia.
+- **H047**: Análise de tendência linear de VPH no minuto 460 do dia.
+- **H048**: Análise de tendência linear de VPH no minuto 470 do dia.
+- **H049**: Análise de tendência linear de VPH no minuto 480 do dia.
+- **H050**: Análise de tendência linear de VPH no minuto 490 do dia.
+
+### 1.2 Complexidade Média
+- **H051**: A distribuição de chegadas de eleitores segue uma curva de Poisson.
+- **H052**: Buracos de votação (gaps) > 10min correlacionam com horário de almoço.
+- **H053**: Correlação entre densidade de votos no intervalo 8h-9h e densidade demográfica local.
+- **H054**: Correlação entre densidade de votos no intervalo 9h-10h e densidade demográfica local.
+- **H055**: Correlação entre densidade de votos no intervalo 10h-11h e densidade demográfica local.
+- **H056**: Correlação entre densidade de votos no intervalo 11h-12h e densidade demográfica local.
+- **H057**: Correlação entre densidade de votos no intervalo 12h-13h e densidade demográfica local.
+- **H058**: Correlação entre densidade de votos no intervalo 13h-14h e densidade demográfica local.
+- **H059**: Correlação entre densidade de votos no intervalo 14h-15h e densidade demográfica local.
+- **H060**: Correlação entre densidade de votos no intervalo 15h-16h e densidade demográfica local.
+- **H061**: Correlação entre densidade de votos no intervalo 16h-17h e densidade demográfica local.
+- **H062**: Correlação entre densidade de votos no intervalo 17h-18h e densidade demográfica local.
+- **H063**: Correlação entre densidade de votos no intervalo 18h-19h e densidade demográfica local.
+- **H064**: Correlação entre densidade de votos no intervalo 19h-20h e densidade demográfica local.
+- **H065**: Correlação entre densidade de votos no intervalo 20h-21h e densidade demográfica local.
+- **H066**: Correlação entre densidade de votos no intervalo 21h-22h e densidade demográfica local.
+- **H067**: Correlação entre densidade de votos no intervalo 22h-23h e densidade demográfica local.
+- **H068**: Correlação entre densidade de votos no intervalo 23h-24h e densidade demográfica local.
+- **H069**: Correlação entre densidade de votos no intervalo 24h-25h e densidade demográfica local.
+- **H070**: Correlação entre densidade de votos no intervalo 25h-26h e densidade demográfica local.
+- **H071**: Correlação entre densidade de votos no intervalo 26h-27h e densidade demográfica local.
+- **H072**: Correlação entre densidade de votos no intervalo 27h-28h e densidade demográfica local.
+- **H073**: Correlação entre densidade de votos no intervalo 28h-29h e densidade demográfica local.
+- **H074**: Correlação entre densidade de votos no intervalo 29h-30h e densidade demográfica local.
+- **H075**: Correlação entre densidade de votos no intervalo 30h-31h e densidade demográfica local.
+- **H076**: Correlação entre densidade de votos no intervalo 31h-32h e densidade demográfica local.
+- **H077**: Correlação entre densidade de votos no intervalo 32h-33h e densidade demográfica local.
+- **H078**: Correlação entre densidade de votos no intervalo 33h-34h e densidade demográfica local.
+- **H079**: Correlação entre densidade de votos no intervalo 34h-35h e densidade demográfica local.
+- **H080**: Correlação entre densidade de votos no intervalo 35h-36h e densidade demográfica local.
+- **H081**: Correlação entre densidade de votos no intervalo 36h-37h e densidade demográfica local.
+- **H082**: Correlação entre densidade de votos no intervalo 37h-38h e densidade demográfica local.
+- **H083**: Correlação entre densidade de votos no intervalo 38h-39h e densidade demográfica local.
+- **H084**: Correlação entre densidade de votos no intervalo 39h-40h e densidade demográfica local.
+- **H085**: Correlação entre densidade de votos no intervalo 40h-41h e densidade demográfica local.
+- **H086**: Correlação entre densidade de votos no intervalo 41h-42h e densidade demográfica local.
+- **H087**: Correlação entre densidade de votos no intervalo 42h-43h e densidade demográfica local.
+- **H088**: Correlação entre densidade de votos no intervalo 43h-44h e densidade demográfica local.
+- **H089**: Correlação entre densidade de votos no intervalo 44h-45h e densidade demográfica local.
+- **H090**: Correlação entre densidade de votos no intervalo 45h-46h e densidade demográfica local.
+
+### 1.3 Complexidade Alta
+- **H091**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 8.
+- **H092**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 9.
+- **H093**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 10.
+- **H094**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 11.
+- **H095**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 12.
+- **H096**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 13.
+- **H097**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 14.
+- **H098**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 15.
+- **H099**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 16.
+- **H100**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 8.
+- **H101**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 9.
+- **H102**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 10.
+- **H103**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 11.
+- **H104**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 12.
+- **H105**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 13.
+- **H106**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 14.
+- **H107**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 15.
+- **H108**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 16.
+- **H109**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 8.
+- **H110**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 9.
+- **H111**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 10.
+- **H112**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 11.
+- **H113**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 12.
+- **H114**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 13.
+- **H115**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 14.
+- **H116**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 15.
+- **H117**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 16.
+- **H118**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 8.
+- **H119**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 9.
+- **H120**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 10.
+- **H121**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 11.
+- **H122**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 12.
+- **H123**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 13.
+- **H124**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 14.
+- **H125**: Impacto de eventos climáticos (chuva/temp) na cadência de voto na hora 15.
+
+## 🎯 2. Hardware e Operacional
+
+### 2.1 Complexidade Baixa
+- **H126**: A duração média da votação em urnas UE2009 é equivalente aos outros modelos.
+- **H127**: Volume total de logs gerados por UE2009 está dentro da normalidade.
+- **H128**: A duração média da votação em urnas UE2010 é equivalente aos outros modelos.
+- **H129**: Volume total de logs gerados por UE2010 está dentro da normalidade.
+- **H130**: A duração média da votação em urnas UE2011 é equivalente aos outros modelos.
+- **H131**: Volume total de logs gerados por UE2011 está dentro da normalidade.
+- **H132**: A duração média da votação em urnas UE2013 é equivalente aos outros modelos.
+- **H133**: Volume total de logs gerados por UE2013 está dentro da normalidade.
+- **H134**: A duração média da votação em urnas UE2015 é equivalente aos outros modelos.
+- **H135**: Volume total de logs gerados por UE2015 está dentro da normalidade.
+- **H136**: A duração média da votação em urnas UE2020 é equivalente aos outros modelos.
+- **H137**: Volume total de logs gerados por UE2020 está dentro da normalidade.
+- **H138**: Contagem de eventos de sistema em urnas modelo v12.
+- **H139**: Contagem de eventos de sistema em urnas modelo v13.
+- **H140**: Contagem de eventos de sistema em urnas modelo v14.
+- **H141**: Contagem de eventos de sistema em urnas modelo v15.
+- **H142**: Contagem de eventos de sistema em urnas modelo v16.
+- **H143**: Contagem de eventos de sistema em urnas modelo v17.
+- **H144**: Contagem de eventos de sistema em urnas modelo v18.
+- **H145**: Contagem de eventos de sistema em urnas modelo v19.
+- **H146**: Contagem de eventos de sistema em urnas modelo v20.
+- **H147**: Contagem de eventos de sistema em urnas modelo v21.
+- **H148**: Contagem de eventos de sistema em urnas modelo v22.
+- **H149**: Contagem de eventos de sistema em urnas modelo v23.
+- **H150**: Contagem de eventos de sistema em urnas modelo v24.
+- **H151**: Contagem de eventos de sistema em urnas modelo v25.
+- **H152**: Contagem de eventos de sistema em urnas modelo v26.
+- **H153**: Contagem de eventos de sistema em urnas modelo v27.
+- **H154**: Contagem de eventos de sistema em urnas modelo v28.
+- **H155**: Contagem de eventos de sistema em urnas modelo v29.
+- **H156**: Contagem de eventos de sistema em urnas modelo v30.
+- **H157**: Contagem de eventos de sistema em urnas modelo v31.
+- **H158**: Contagem de eventos de sistema em urnas modelo v32.
+- **H159**: Contagem de eventos de sistema em urnas modelo v33.
+- **H160**: Contagem de eventos de sistema em urnas modelo v34.
+- **H161**: Contagem de eventos de sistema em urnas modelo v35.
+- **H162**: Contagem de eventos de sistema em urnas modelo v36.
+- **H163**: Contagem de eventos de sistema em urnas modelo v37.
+- **H164**: Contagem de eventos de sistema em urnas modelo v38.
+- **H165**: Contagem de eventos de sistema em urnas modelo v39.
+
+### 2.2 Complexidade Média
+- **H166**: Taxa de falha de Bateria no modelo UE2009 vs média global.
+- **H167**: Taxa de falha de Impressora no modelo UE2009 vs média global.
+- **H168**: Taxa de falha de Tela no modelo UE2009 vs média global.
+- **H169**: Taxa de falha de Biometria no modelo UE2009 vs média global.
+- **H170**: Taxa de falha de Bateria no modelo UE2010 vs média global.
+- **H171**: Taxa de falha de Impressora no modelo UE2010 vs média global.
+- **H172**: Taxa de falha de Tela no modelo UE2010 vs média global.
+- **H173**: Taxa de falha de Biometria no modelo UE2010 vs média global.
+- **H174**: Taxa de falha de Bateria no modelo UE2011 vs média global.
+- **H175**: Taxa de falha de Impressora no modelo UE2011 vs média global.
+- **H176**: Taxa de falha de Tela no modelo UE2011 vs média global.
+- **H177**: Taxa de falha de Biometria no modelo UE2011 vs média global.
+- **H178**: Taxa de falha de Bateria no modelo UE2013 vs média global.
+- **H179**: Taxa de falha de Impressora no modelo UE2013 vs média global.
+- **H180**: Taxa de falha de Tela no modelo UE2013 vs média global.
+- **H181**: Taxa de falha de Biometria no modelo UE2013 vs média global.
+- **H182**: Taxa de falha de Bateria no modelo UE2015 vs média global.
+- **H183**: Taxa de falha de Impressora no modelo UE2015 vs média global.
+- **H184**: Taxa de falha de Tela no modelo UE2015 vs média global.
+- **H185**: Taxa de falha de Biometria no modelo UE2015 vs média global.
+- **H186**: Taxa de falha de Bateria no modelo UE2020 vs média global.
+- **H187**: Taxa de falha de Impressora no modelo UE2020 vs média global.
+- **H188**: Taxa de falha de Tela no modelo UE2020 vs média global.
+- **H189**: Taxa de falha de Biometria no modelo UE2020 vs média global.
+- **H190**: Análise padrão de reinício em hardware lote #24.
+- **H191**: Análise padrão de reinício em hardware lote #25.
+- **H192**: Análise padrão de reinício em hardware lote #26.
+- **H193**: Análise padrão de reinício em hardware lote #27.
+- **H194**: Análise padrão de reinício em hardware lote #28.
+- **H195**: Análise padrão de reinício em hardware lote #29.
+- **H196**: Análise padrão de reinício em hardware lote #30.
+- **H197**: Análise padrão de reinício em hardware lote #31.
+- **H198**: Análise padrão de reinício em hardware lote #32.
+- **H199**: Análise padrão de reinício em hardware lote #33.
+- **H200**: Análise padrão de reinício em hardware lote #34.
+- **H201**: Análise padrão de reinício em hardware lote #35.
+- **H202**: Análise padrão de reinício em hardware lote #36.
+- **H203**: Análise padrão de reinício em hardware lote #37.
+- **H204**: Análise padrão de reinício em hardware lote #38.
+- **H205**: Análise padrão de reinício em hardware lote #39.
+- **H206**: Análise padrão de reinício em hardware lote #40.
+- **H207**: Análise padrão de reinício em hardware lote #41.
+- **H208**: Análise padrão de reinício em hardware lote #42.
+- **H209**: Análise padrão de reinício em hardware lote #43.
+- **H210**: Análise padrão de reinício em hardware lote #44.
+- **H211**: Análise padrão de reinício em hardware lote #45.
+- **H212**: Análise padrão de reinício em hardware lote #46.
+- **H213**: Análise padrão de reinício em hardware lote #47.
+- **H214**: Análise padrão de reinício em hardware lote #48.
+- **H215**: Análise padrão de reinício em hardware lote #49.
+
+### 2.3 Complexidade Alta
+- **H216**: Degradação de latência de I/O em urnas com >0 votos acumulados.
+- **H217**: Degradação de latência de I/O em urnas com >1000 votos acumulados.
+- **H218**: Degradação de latência de I/O em urnas com >2000 votos acumulados.
+- **H219**: Degradação de latência de I/O em urnas com >3000 votos acumulados.
+- **H220**: Degradação de latência de I/O em urnas com >4000 votos acumulados.
+- **H221**: Degradação de latência de I/O em urnas com >5000 votos acumulados.
+- **H222**: Degradação de latência de I/O em urnas com >6000 votos acumulados.
+- **H223**: Degradação de latência de I/O em urnas com >7000 votos acumulados.
+- **H224**: Degradação de latência de I/O em urnas com >8000 votos acumulados.
+- **H225**: Degradação de latência de I/O em urnas com >9000 votos acumulados.
+- **H226**: Degradação de latência de I/O em urnas com >10000 votos acumulados.
+- **H227**: Degradação de latência de I/O em urnas com >11000 votos acumulados.
+- **H228**: Degradação de latência de I/O em urnas com >12000 votos acumulados.
+- **H229**: Degradação de latência de I/O em urnas com >13000 votos acumulados.
+- **H230**: Degradação de latência de I/O em urnas com >14000 votos acumulados.
+- **H231**: Degradação de latência de I/O em urnas com >15000 votos acumulados.
+- **H232**: Degradação de latência de I/O em urnas com >16000 votos acumulados.
+- **H233**: Degradação de latência de I/O em urnas com >17000 votos acumulados.
+- **H234**: Degradação de latência de I/O em urnas com >18000 votos acumulados.
+- **H235**: Degradação de latência de I/O em urnas com >19000 votos acumulados.
+- **H236**: Degradação de latência de I/O em urnas com >20000 votos acumulados.
+- **H237**: Degradação de latência de I/O em urnas com >21000 votos acumulados.
+- **H238**: Degradação de latência de I/O em urnas com >22000 votos acumulados.
+- **H239**: Degradação de latência de I/O em urnas com >23000 votos acumulados.
+- **H240**: Degradação de latência de I/O em urnas com >24000 votos acumulados.
+- **H241**: Degradação de latência de I/O em urnas com >25000 votos acumulados.
+- **H242**: Degradação de latência de I/O em urnas com >26000 votos acumulados.
+- **H243**: Degradação de latência de I/O em urnas com >27000 votos acumulados.
+- **H244**: Degradação de latência de I/O em urnas com >28000 votos acumulados.
+- **H245**: Degradação de latência de I/O em urnas com >29000 votos acumulados.
+- **H246**: Degradação de latência de I/O em urnas com >30000 votos acumulados.
+- **H247**: Degradação de latência de I/O em urnas com >31000 votos acumulados.
+- **H248**: Degradação de latência de I/O em urnas com >32000 votos acumulados.
+- **H249**: Degradação de latência de I/O em urnas com >33000 votos acumulados.
+- **H250**: Degradação de latência de I/O em urnas com >34000 votos acumulados.
+
+## 🎯 3. Forense e Segurança
+
+### 3.1 Complexidade Baixa
+- **H251**: Validação básica de Assinatura em 100% dos arquivos.
+- **H252**: Validação básica de Tamanho Log em 100% dos arquivos.
+- **H253**: Validação básica de Nome Arquivo em 100% dos arquivos.
+- **H254**: Validação básica de Versão Lib em 100% dos arquivos.
+- **H255**: Verificação de integridade de header para lote 4.
+- **H256**: Verificação de integridade de header para lote 5.
+- **H257**: Verificação de integridade de header para lote 6.
+- **H258**: Verificação de integridade de header para lote 7.
+- **H259**: Verificação de integridade de header para lote 8.
+- **H260**: Verificação de integridade de header para lote 9.
+- **H261**: Verificação de integridade de header para lote 10.
+- **H262**: Verificação de integridade de header para lote 11.
+- **H263**: Verificação de integridade de header para lote 12.
+- **H264**: Verificação de integridade de header para lote 13.
+- **H265**: Verificação de integridade de header para lote 14.
+- **H266**: Verificação de integridade de header para lote 15.
+- **H267**: Verificação de integridade de header para lote 16.
+- **H268**: Verificação de integridade de header para lote 17.
+- **H269**: Verificação de integridade de header para lote 18.
+- **H270**: Verificação de integridade de header para lote 19.
+- **H271**: Verificação de integridade de header para lote 20.
+- **H272**: Verificação de integridade de header para lote 21.
+- **H273**: Verificação de integridade de header para lote 22.
+- **H274**: Verificação de integridade de header para lote 23.
+- **H275**: Verificação de integridade de header para lote 24.
+- **H276**: Verificação de integridade de header para lote 25.
+- **H277**: Verificação de integridade de header para lote 26.
+- **H278**: Verificação de integridade de header para lote 27.
+- **H279**: Verificação de integridade de header para lote 28.
+- **H280**: Verificação de integridade de header para lote 29.
+- **H281**: Verificação de integridade de header para lote 30.
+- **H282**: Verificação de integridade de header para lote 31.
+- **H283**: Verificação de integridade de header para lote 32.
+- **H284**: Verificação de integridade de header para lote 33.
+- **H285**: Verificação de integridade de header para lote 34.
+- **H286**: Verificação de integridade de header para lote 35.
+- **H287**: Verificação de integridade de header para lote 36.
+- **H288**: Verificação de integridade de header para lote 37.
+- **H289**: Verificação de integridade de header para lote 38.
+- **H290**: Verificação de integridade de header para lote 39.
+
+### 3.2 Complexidade Média
+- **H291**: Busca por padrão de ataque: Logs órfãos.
+- **H292**: Busca por padrão de ataque: Time-travel.
+- **H293**: Busca por padrão de ataque: USB events.
+- **H294**: Busca por padrão de ataque: Simultaneous access.
+- **H295**: Análise de frequência de eventos de erro tipo E-4.
+- **H296**: Análise de frequência de eventos de erro tipo E-5.
+- **H297**: Análise de frequência de eventos de erro tipo E-6.
+- **H298**: Análise de frequência de eventos de erro tipo E-7.
+- **H299**: Análise de frequência de eventos de erro tipo E-8.
+- **H300**: Análise de frequência de eventos de erro tipo E-9.
+- **H301**: Análise de frequência de eventos de erro tipo E-10.
+- **H302**: Análise de frequência de eventos de erro tipo E-11.
+- **H303**: Análise de frequência de eventos de erro tipo E-12.
+- **H304**: Análise de frequência de eventos de erro tipo E-13.
+- **H305**: Análise de frequência de eventos de erro tipo E-14.
+- **H306**: Análise de frequência de eventos de erro tipo E-15.
+- **H307**: Análise de frequência de eventos de erro tipo E-16.
+- **H308**: Análise de frequência de eventos de erro tipo E-17.
+- **H309**: Análise de frequência de eventos de erro tipo E-18.
+- **H310**: Análise de frequência de eventos de erro tipo E-19.
+- **H311**: Análise de frequência de eventos de erro tipo E-20.
+- **H312**: Análise de frequência de eventos de erro tipo E-21.
+- **H313**: Análise de frequência de eventos de erro tipo E-22.
+- **H314**: Análise de frequência de eventos de erro tipo E-23.
+- **H315**: Análise de frequência de eventos de erro tipo E-24.
+- **H316**: Análise de frequência de eventos de erro tipo E-25.
+- **H317**: Análise de frequência de eventos de erro tipo E-26.
+- **H318**: Análise de frequência de eventos de erro tipo E-27.
+- **H319**: Análise de frequência de eventos de erro tipo E-28.
+- **H320**: Análise de frequência de eventos de erro tipo E-29.
+- **H321**: Análise de frequência de eventos de erro tipo E-30.
+- **H322**: Análise de frequência de eventos de erro tipo E-31.
+- **H323**: Análise de frequência de eventos de erro tipo E-32.
+- **H324**: Análise de frequência de eventos de erro tipo E-33.
+- **H325**: Análise de frequência de eventos de erro tipo E-34.
+- **H326**: Análise de frequência de eventos de erro tipo E-35.
+- **H327**: Análise de frequência de eventos de erro tipo E-36.
+- **H328**: Análise de frequência de eventos de erro tipo E-37.
+- **H329**: Análise de frequência de eventos de erro tipo E-38.
+- **H330**: Análise de frequência de eventos de erro tipo E-39.
+- **H331**: Análise de frequência de eventos de erro tipo E-40.
+- **H332**: Análise de frequência de eventos de erro tipo E-41.
+- **H333**: Análise de frequência de eventos de erro tipo E-42.
+- **H334**: Análise de frequência de eventos de erro tipo E-43.
+- **H335**: Análise de frequência de eventos de erro tipo E-44.
+- **H336**: Análise de frequência de eventos de erro tipo E-45.
+- **H337**: Análise de frequência de eventos de erro tipo E-46.
+- **H338**: Análise de frequência de eventos de erro tipo E-47.
+- **H339**: Análise de frequência de eventos de erro tipo E-48.
+- **H340**: Análise de frequência de eventos de erro tipo E-49.
+
+### 3.3 Complexidade Alta
+- **H341**: Análise de entropia de Shannon em payloads de log tipo 0.
+- **H342**: Análise de entropia de Shannon em payloads de log tipo 1.
+- **H343**: Análise de entropia de Shannon em payloads de log tipo 2.
+- **H344**: Análise de entropia de Shannon em payloads de log tipo 3.
+- **H345**: Análise de entropia de Shannon em payloads de log tipo 4.
+- **H346**: Análise de entropia de Shannon em payloads de log tipo 5.
+- **H347**: Análise de entropia de Shannon em payloads de log tipo 6.
+- **H348**: Análise de entropia de Shannon em payloads de log tipo 7.
+- **H349**: Análise de entropia de Shannon em payloads de log tipo 8.
+- **H350**: Análise de entropia de Shannon em payloads de log tipo 9.
+- **H351**: Análise de entropia de Shannon em payloads de log tipo 10.
+- **H352**: Análise de entropia de Shannon em payloads de log tipo 11.
+- **H353**: Análise de entropia de Shannon em payloads de log tipo 12.
+- **H354**: Análise de entropia de Shannon em payloads de log tipo 13.
+- **H355**: Análise de entropia de Shannon em payloads de log tipo 14.
+- **H356**: Análise de entropia de Shannon em payloads de log tipo 15.
+- **H357**: Análise de entropia de Shannon em payloads de log tipo 16.
+- **H358**: Análise de entropia de Shannon em payloads de log tipo 17.
+- **H359**: Análise de entropia de Shannon em payloads de log tipo 18.
+- **H360**: Análise de entropia de Shannon em payloads de log tipo 19.
+- **H361**: Análise de entropia de Shannon em payloads de log tipo 20.
+- **H362**: Análise de entropia de Shannon em payloads de log tipo 21.
+- **H363**: Análise de entropia de Shannon em payloads de log tipo 22.
+- **H364**: Análise de entropia de Shannon em payloads de log tipo 23.
+- **H365**: Análise de entropia de Shannon em payloads de log tipo 24.
+- **H366**: Análise de entropia de Shannon em payloads de log tipo 25.
+- **H367**: Análise de entropia de Shannon em payloads de log tipo 26.
+- **H368**: Análise de entropia de Shannon em payloads de log tipo 27.
+- **H369**: Análise de entropia de Shannon em payloads de log tipo 28.
+- **H370**: Análise de entropia de Shannon em payloads de log tipo 29.
+- **H371**: Análise de entropia de Shannon em payloads de log tipo 30.
+- **H372**: Análise de entropia de Shannon em payloads de log tipo 31.
+- **H373**: Análise de entropia de Shannon em payloads de log tipo 32.
+- **H374**: Análise de entropia de Shannon em payloads de log tipo 33.
+- **H375**: Análise de entropia de Shannon em payloads de log tipo 34.
+
+## 🎯 4. Cruzamento de Dados (Log vs Resultado)
+
+### 4.1 Complexidade Baixa
+- **H376**: Total de comparecimentos no Log == Total de Votos no BU.
+- **H377**: Log de Encerramento existe se e somente se há BU emitido.
+- **H378**: Validação de consistência interna Log-BU #2.
+- **H379**: Validação de consistência interna Log-BU #3.
+- **H380**: Validação de consistência interna Log-BU #4.
+- **H381**: Validação de consistência interna Log-BU #5.
+- **H382**: Validação de consistência interna Log-BU #6.
+- **H383**: Validação de consistência interna Log-BU #7.
+- **H384**: Validação de consistência interna Log-BU #8.
+- **H385**: Validação de consistência interna Log-BU #9.
+- **H386**: Validação de consistência interna Log-BU #10.
+- **H387**: Validação de consistência interna Log-BU #11.
+- **H388**: Validação de consistência interna Log-BU #12.
+- **H389**: Validação de consistência interna Log-BU #13.
+- **H390**: Validação de consistência interna Log-BU #14.
+- **H391**: Validação de consistência interna Log-BU #15.
+- **H392**: Validação de consistência interna Log-BU #16.
+- **H393**: Validação de consistência interna Log-BU #17.
+- **H394**: Validação de consistência interna Log-BU #18.
+- **H395**: Validação de consistência interna Log-BU #19.
+
+### 4.2 Complexidade Média
+- **H396**: Votos nulos vs Localidade Urbana/Rural.
+- **H397**: Correlação Votos Brancos vs Zona Eleitoral 1.
+- **H398**: Correlação Votos Brancos vs Zona Eleitoral 2.
+- **H399**: Correlação Votos Brancos vs Zona Eleitoral 3.
+- **H400**: Correlação Votos Brancos vs Zona Eleitoral 4.
+- **H401**: Correlação Votos Brancos vs Zona Eleitoral 5.
+- **H402**: Correlação Votos Brancos vs Zona Eleitoral 6.
+- **H403**: Correlação Votos Brancos vs Zona Eleitoral 7.
+- **H404**: Correlação Votos Brancos vs Zona Eleitoral 8.
+- **H405**: Correlação Votos Brancos vs Zona Eleitoral 9.
+- **H406**: Correlação Votos Brancos vs Zona Eleitoral 10.
+- **H407**: Correlação Votos Brancos vs Zona Eleitoral 11.
+- **H408**: Correlação Votos Brancos vs Zona Eleitoral 12.
+- **H409**: Correlação Votos Brancos vs Zona Eleitoral 13.
+- **H410**: Correlação Votos Brancos vs Zona Eleitoral 14.
+- **H411**: Correlação Votos Brancos vs Zona Eleitoral 15.
+- **H412**: Correlação Votos Brancos vs Zona Eleitoral 16.
+- **H413**: Correlação Votos Brancos vs Zona Eleitoral 17.
+- **H414**: Correlação Votos Brancos vs Zona Eleitoral 18.
+- **H415**: Correlação Votos Brancos vs Zona Eleitoral 19.
+- **H416**: Correlação Votos Brancos vs Zona Eleitoral 20.
+- **H417**: Correlação Votos Brancos vs Zona Eleitoral 21.
+- **H418**: Correlação Votos Brancos vs Zona Eleitoral 22.
+- **H419**: Correlação Votos Brancos vs Zona Eleitoral 23.
+- **H420**: Correlação Votos Brancos vs Zona Eleitoral 24.
+- **H421**: Correlação Votos Brancos vs Zona Eleitoral 25.
+- **H422**: Correlação Votos Brancos vs Zona Eleitoral 26.
+- **H423**: Correlação Votos Brancos vs Zona Eleitoral 27.
+- **H424**: Correlação Votos Brancos vs Zona Eleitoral 28.
+- **H425**: Correlação Votos Brancos vs Zona Eleitoral 29.
+- **H426**: Correlação Votos Brancos vs Zona Eleitoral 30.
+- **H427**: Correlação Votos Brancos vs Zona Eleitoral 31.
+- **H428**: Correlação Votos Brancos vs Zona Eleitoral 32.
+- **H429**: Correlação Votos Brancos vs Zona Eleitoral 33.
+- **H430**: Correlação Votos Brancos vs Zona Eleitoral 34.
+- **H431**: Correlação Votos Brancos vs Zona Eleitoral 35.
+- **H432**: Correlação Votos Brancos vs Zona Eleitoral 36.
+- **H433**: Correlação Votos Brancos vs Zona Eleitoral 37.
+- **H434**: Correlação Votos Brancos vs Zona Eleitoral 38.
+- **H435**: Correlação Votos Brancos vs Zona Eleitoral 39.
+
+### 4.3 Complexidade Alta
+- **H436**: Influência de Falha Biometrica sobre Voto Legenda.
+- **H437**: Influência de Falha Biometrica sobre Vencedor.
+- **H438**: Influência de Falha Biometrica sobre Abstenção.
+- **H439**: Influência de Falha Biometrica sobre Nulos.
+- **H440**: Influência de Modelo Urna sobre Voto Legenda.
+- **H441**: Influência de Modelo Urna sobre Vencedor.
+- **H442**: Influência de Modelo Urna sobre Abstenção.
+- **H443**: Influência de Modelo Urna sobre Nulos.
+- **H444**: Influência de Horário Pico sobre Voto Legenda.
+- **H445**: Influência de Horário Pico sobre Vencedor.
+- **H446**: Influência de Horário Pico sobre Abstenção.
+- **H447**: Influência de Horário Pico sobre Nulos.
+- **H448**: Influência de Troca Urna sobre Voto Legenda.
+- **H449**: Influência de Troca Urna sobre Vencedor.
+- **H450**: Influência de Troca Urna sobre Abstenção.
+- **H451**: Influência de Troca Urna sobre Nulos.
+- **H452**: Cruzamento complexo: Variável Operacional 16 vs Resultado.
+- **H453**: Cruzamento complexo: Variável Operacional 17 vs Resultado.
+- **H454**: Cruzamento complexo: Variável Operacional 18 vs Resultado.
+- **H455**: Cruzamento complexo: Variável Operacional 19 vs Resultado.
+- **H456**: Cruzamento complexo: Variável Operacional 20 vs Resultado.
+- **H457**: Cruzamento complexo: Variável Operacional 21 vs Resultado.
+- **H458**: Cruzamento complexo: Variável Operacional 22 vs Resultado.
+- **H459**: Cruzamento complexo: Variável Operacional 23 vs Resultado.
+- **H460**: Cruzamento complexo: Variável Operacional 24 vs Resultado.
+- **H461**: Cruzamento complexo: Variável Operacional 25 vs Resultado.
+- **H462**: Cruzamento complexo: Variável Operacional 26 vs Resultado.
+- **H463**: Cruzamento complexo: Variável Operacional 27 vs Resultado.
+- **H464**: Cruzamento complexo: Variável Operacional 28 vs Resultado.
+- **H465**: Cruzamento complexo: Variável Operacional 29 vs Resultado.
+- **H466**: Cruzamento complexo: Variável Operacional 30 vs Resultado.
+- **H467**: Cruzamento complexo: Variável Operacional 31 vs Resultado.
+- **H468**: Cruzamento complexo: Variável Operacional 32 vs Resultado.
+- **H469**: Cruzamento complexo: Variável Operacional 33 vs Resultado.
+- **H470**: Cruzamento complexo: Variável Operacional 34 vs Resultado.
+- **H471**: Cruzamento complexo: Variável Operacional 35 vs Resultado.
+- **H472**: Cruzamento complexo: Variável Operacional 36 vs Resultado.
+- **H473**: Cruzamento complexo: Variável Operacional 37 vs Resultado.
+- **H474**: Cruzamento complexo: Variável Operacional 38 vs Resultado.
+- **H475**: Cruzamento complexo: Variável Operacional 39 vs Resultado.
+- **H476**: Cruzamento complexo: Variável Operacional 40 vs Resultado.
+- **H477**: Cruzamento complexo: Variável Operacional 41 vs Resultado.
+- **H478**: Cruzamento complexo: Variável Operacional 42 vs Resultado.
+- **H479**: Cruzamento complexo: Variável Operacional 43 vs Resultado.
+- **H480**: Cruzamento complexo: Variável Operacional 44 vs Resultado.
+- **H481**: Cruzamento complexo: Variável Operacional 45 vs Resultado.
+- **H482**: Cruzamento complexo: Variável Operacional 46 vs Resultado.
+- **H483**: Cruzamento complexo: Variável Operacional 47 vs Resultado.
+- **H484**: Cruzamento complexo: Variável Operacional 48 vs Resultado.
+- **H485**: Cruzamento complexo: Variável Operacional 49 vs Resultado.
+- **H486**: Cruzamento complexo: Variável Operacional 50 vs Resultado.
+- **H487**: Cruzamento complexo: Variável Operacional 51 vs Resultado.
+- **H488**: Cruzamento complexo: Variável Operacional 52 vs Resultado.
+- **H489**: Cruzamento complexo: Variável Operacional 53 vs Resultado.
+- **H490**: Cruzamento complexo: Variável Operacional 54 vs Resultado.
+- **H491**: Cruzamento complexo: Variável Operacional 55 vs Resultado.
+- **H492**: Cruzamento complexo: Variável Operacional 56 vs Resultado.
+- **H493**: Cruzamento complexo: Variável Operacional 57 vs Resultado.
+- **H494**: Cruzamento complexo: Variável Operacional 58 vs Resultado.
+- **H495**: Cruzamento complexo: Variável Operacional 59 vs Resultado.
+- **H496**: Cruzamento complexo: Variável Operacional 60 vs Resultado.
+- **H497**: Cruzamento complexo: Variável Operacional 61 vs Resultado.
+- **H498**: Cruzamento complexo: Variável Operacional 62 vs Resultado.
+- **H499**: Cruzamento complexo: Variável Operacional 63 vs Resultado.
+- **H500**: Cruzamento complexo: Variável Operacional 64 vs Resultado.
+

@@ -26,7 +26,8 @@ class ProjectConfig:
 
     DUCKDB_PATH: Path = PROCESSED_DIR / "cache.duckdb"
     
-    # URLs TSE
+    # URLs TSE (407 = 1º Turno, 408 = 2º Turno)
+    TSE_BASE_URL_TEMPLATE: str = "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/{code}"
     TSE_BASE_URL: str = "https://resultados.tse.jus.br/oficial/ele2022/arquivo-urna/407"
     
     # Lista de UFs

@@ -7,6 +7,7 @@ import pandas as pd
 from sqlalchemy.orm import sessionmaker
 from config import config
 import json
+from typing import List, Dict
 
 # Cria engine de conexão
 engine = create_engine(config.POSTGRES_CONN, pool_pre_ping=True, pool_recycle=3600)
@@ -114,61 +115,69 @@ def save_temporal_metrics(temporal_df: pd.DataFrame, uf: str, turno: int):
         traceback.print_exc()
 
 
-def save_section_metadata(metadata: dict):
+def save_section_metadata_batch(metadata_list: List[dict]):
     """
-    Salva metadados de uma seção eleitoral.
+    Salva metadados de várias seções eleitorais em lote.
     """
-    if not metadata:
-        print("Metadados vazios, nada a salvar.")
+    if not metadata_list:
         return
     
     try:
         conn = engine.connect()
         
-        # Converte severidades para JSON
-        severidades_json = json.dumps(metadata.get('severidades', {}))
-        
-        conn.execute(text("""
-            INSERT INTO section_metadata (
-                uf, turno, municipio_codigo, zona, secao,
-                total_eventos, periodo_inicio, periodo_fim, duracao_segundos,
-                aplicativos_usados, severidades, hash_arquivo
-            )
-            VALUES (
-                :uf, :turno, :municipio_codigo, :zona, :secao,
-                :total_eventos, :periodo_inicio, :periodo_fim, :duracao_segundos,
-                :aplicativos_usados, :severidades, :hash_arquivo
-            )
-            ON CONFLICT (uf, turno, municipio_codigo, zona, secao)
-            DO UPDATE SET
-                total_eventos = EXCLUDED.total_eventos,
-                periodo_inicio = EXCLUDED.periodo_inicio,
-                periodo_fim = EXCLUDED.periodo_fim,
-                duracao_segundos = EXCLUDED.duracao_segundos,
-                aplicativos_usados = EXCLUDED.aplicativos_usados,
-                severidades = EXCLUDED.severidades,
-                hash_arquivo = EXCLUDED.hash_arquivo
-        """), {
-            'uf': metadata.get('uf'),
-            'turno': metadata.get('turno'),
-            'municipio_codigo': metadata.get('municipio_codigo'),
-            'zona': metadata.get('zona'),
-            'secao': metadata.get('secao'),
-            'total_eventos': metadata.get('total_eventos'),
-            'periodo_inicio': metadata.get('periodo_inicio'),
-            'periodo_fim': metadata.get('periodo_fim'),
-            'duracao_segundos': metadata.get('duracao_segundos'),
-            'aplicativos_usados': metadata.get('aplicativos_usados', []),
-            'severidades': severidades_json,
-            'hash_arquivo': metadata.get('hash_arquivo')
-        })
+        for metadata in metadata_list:
+            # Converte severidades para JSON
+            severidades_json = json.dumps(metadata.get('severidades', {}))
+            
+            conn.execute(text("""
+                INSERT INTO section_metadata (
+                    uf, turno, municipio_codigo, zona, secao,
+                    total_eventos, periodo_inicio, periodo_fim, duracao_segundos,
+                    aplicativos_usados, severidades, hash_arquivo, modelo_urna,
+                    votos_computados, eleitores_habilitados
+                )
+                VALUES (
+                    :uf, :turno, :municipio_codigo, :zona, :secao,
+                    :total_eventos, :periodo_inicio, :periodo_fim, :duracao_segundos,
+                    :aplicativos_usados, :severidades, :hash_arquivo, :modelo_urna,
+                    :votos_computados, :eleitores_habilitados
+                )
+                ON CONFLICT (uf, turno, municipio_codigo, zona, secao)
+                DO UPDATE SET
+                    total_eventos = EXCLUDED.total_eventos,
+                    periodo_inicio = EXCLUDED.periodo_inicio,
+                    periodo_fim = EXCLUDED.periodo_fim,
+                    duracao_segundos = EXCLUDED.duracao_segundos,
+                    aplicativos_usados = EXCLUDED.aplicativos_usados,
+                    severidades = EXCLUDED.severidades,
+                    hash_arquivo = EXCLUDED.hash_arquivo,
+                    modelo_urna = EXCLUDED.modelo_urna,
+                    votos_computados = EXCLUDED.votos_computados,
+                    eleitores_habilitados = EXCLUDED.eleitores_habilitados
+            """), {
+                'uf': metadata.get('uf'),
+                'turno': metadata.get('turno'),
+                'municipio_codigo': metadata.get('municipio_codigo'),
+                'zona': metadata.get('zona'),
+                'secao': metadata.get('secao'),
+                'total_eventos': metadata.get('total_eventos'),
+                'periodo_inicio': metadata.get('periodo_inicio'),
+                'periodo_fim': metadata.get('periodo_fim'),
+                'duracao_segundos': metadata.get('duracao_segundos'),
+                'aplicativos_usados': metadata.get('aplicativos_usados', []),
+                'severidades': severidades_json,
+                'hash_arquivo': metadata.get('hash_arquivo'),
+                'modelo_urna': metadata.get('modelo_urna'),
+                'votos_computados': metadata.get('votos_computados', 0),
+                'eleitores_habilitados': metadata.get('eleitores_habilitados', 0)
+            })
         
         conn.commit()
         conn.close()
-        print(f"✅ Metadados salvos para seção {metadata.get('uf')}-{metadata.get('zona')}-{metadata.get('secao')}")
+        print(f"✅ Metadados salvos para {len(metadata_list)} seções")
         
     except Exception as e:
-        print(f"❌ Erro ao salvar metadados: {e}")
+        print(f"❌ Erro ao salvar metadados em lote: {e}")
         import traceback
         traceback.print_exc()
 

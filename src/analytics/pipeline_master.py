@@ -14,18 +14,21 @@ sys.path.append(str(PROJECT_ROOT / "src"))
 from config import config
 from src.analytics.critical_anomaly_detector import CriticalAnomalyDetector
 from src.analytics.outlier_detector import OutlierDetector
+from src.analytics.bu_auditor import BUAuditor
 
 # Paleta de cores para consistência
 STATE_COLORS = {
     'RR': '#3498db', # Azul
     'AP': '#2ecc71', # Verde
-    'AC': '#e74c3c'  # Vermelho
+    'AC': '#e74c3c', # Vermelho
+    'TO': '#f1c40f', # Amarelo
+    'SE': '#9b59b6'  # Roxo
 }
 
 class BrurnaMasterPipeline:
     """Orquestrador de Pipeline Multi-Especialista para Brurna Analytics"""
     
-    def __init__(self, ufs=["RR", "AP", "AC"]):
+    def __init__(self, ufs=["RR", "AP", "AC", "TO", "SE"]):
         self.ufs = [uf.upper() for uf in ufs]
         self.engine = create_engine(config.POSTGRES_CONN)
         self.output_file = PROJECT_ROOT / "walkthrough_master.md"
@@ -102,6 +105,27 @@ class BrurnaMasterPipeline:
         except Exception as e:
             print(f"⚠️ Erro ao gerar gráfico de modelos: {e}")
 
+    def run_compliance_analyst(self):
+        """Especialista de Conformidade: Cruzamento Log vs TSE (BU)"""
+        print("⚖️ Especialista de Conformidade em ação...")
+        auditor = BUAuditor()
+        all_checks = {}
+        
+        for uf in self.ufs:
+            report = auditor.generate_audit_report(uf)
+            if not report.empty:
+                # Filtrar apenas as que possuem votos extraídos
+                auditadas = report[report['votos_log'] > 0]
+                total = len(auditadas)
+                conforme = len(auditadas[auditadas['status_auditoria'] == 'OK'])
+                all_checks[uf] = {
+                    'total_auditadas': total,
+                    'conformidade': (conforme/total * 100) if total > 0 else 0,
+                    'divergentes': len(auditadas[auditadas['status_auditoria'] != 'OK'])
+                }
+        
+        self.experts_reports['compliance'] = all_checks
+
     def generate_master_report(self):
         """Consolida todos os relatórios com métricas profundas"""
         print("📝 Consolidando Relatório Master Refinado...")
@@ -117,11 +141,11 @@ class BrurnaMasterPipeline:
         now = datetime.now().strftime("%d/%m/%Y %H:%M")
         
         doc = [
-            f"# 🏆 Brurna Analytics: Relatório Executivo Multi-Especialista",
+            f"# 🏆 Brurna Analytics: Relatório Executivo Master",
             f"*Refinado em: {now}*",
             "\n---",
             "\n## 🎯 1. Visão Geral da Operação",
-            f"Análise consolidada (Cores: RR=Azul, AP=Verde, AC=Vermelho) para os estados: **{', '.join(self.ufs)}**."
+            f"Análise consolidada (RR, AP, AC, TO, SE) para os estados processados."
         ]
 
         # 1. Especialista Forense
@@ -129,8 +153,21 @@ class BrurnaMasterPipeline:
         doc.append("\n✅ **INTEGRIDADE VALIDADA**: 0 violações de LGPD detectadas.")
         doc.append("✅ **AUTENTICIDADE**: 100% dos logs com assinaturas e encoding Linux íntegros.")
 
-        # 2. Especialista Operacional
-        doc.append("\n## ⚙️ Seção II: Especialista Operacional (Performance)")
+        # 2. Especialista de Conformidade (Novo!)
+        doc.append("\n## ⚖️ Seção II: Especialista de Conformidade (Cruzamento BU)")
+        comp_data = self.experts_reports.get('compliance', {})
+        if comp_data:
+            doc.append("| UF | Urnas Auditadas | Taxa de Conformidade | Divergências |")
+            doc.append("|---|---|---|---|")
+            for uf, d in comp_data.items():
+                emoji = "🛡️" if d['conformidade'] > 99 else "⚠️"
+                doc.append(f"| **{uf}** | {d['total_auditadas']} | {emoji} {d['conformidade']:.2f}% | {d['divergentes']} |")
+            doc.append("\n> [!NOTE]\n> A conformidade total é atingida quando os votos registrados no Log coincidem 100% com o comparecimento oficial do TSE.")
+        else:
+            doc.append("\n⏳ Aguardando processamento de métricas de auditoria...")
+
+        # 3. Especialista Operacional
+        doc.append("\n## ⚙️ Seção III: Especialista Operacional (Performance)")
         op_data = self.experts_reports.get('operational', {})
         stats = op_data.get('stats', {})
         
@@ -162,6 +199,7 @@ class BrurnaMasterPipeline:
 
     def run_all(self):
         self.run_forensic_analyst()
+        self.run_compliance_analyst()
         self.run_operational_analyst()
         self.run_statistical_analyst()
         self.generate_master_report()

@@ -9,8 +9,10 @@ def setup_db():
     print("🛠️  Configurando banco de dados...")
     with engine.connect() as conn:
         conn.execute(text("ALTER TABLE section_metadata ADD COLUMN IF NOT EXISTS modelo_urna VARCHAR(50)"))
+        conn.execute(text("ALTER TABLE section_metadata ADD COLUMN IF NOT EXISTS votos_computados INTEGER DEFAULT 0"))
+        conn.execute(text("ALTER TABLE section_metadata ADD COLUMN IF NOT EXISTS eleitores_habilitados INTEGER DEFAULT 0"))
         conn.commit()
-    print("✅ Coluna 'modelo_urna' garantida.")
+    print("✅ Colunas de Auditoria e Modelo garantidas.")
 
 def extract_models():
     # Busca qualquer mensagem que contenha UE seguido de 4 digitos

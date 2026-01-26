@@ -202,7 +202,7 @@ class TSEDataDownloader:
         # Carrega apenas colunas relevantes
         colunas_relevantes = [
             'SG_UF', 'CD_MUNICIPIO', 'NR_ZONA', 'NR_SECAO',
-            'NR_TURNO', 'DS_MODELO_URNA', 'QT_APTOS',
+            'NR_TURNO', 'CD_CARGO', 'QT_APTOS',
             'QT_COMPARECIMENTO', 'QT_ABSTENCOES'
         ]
         

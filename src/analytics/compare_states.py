@@ -12,7 +12,9 @@ plt.style.use('seaborn-v0_8-muted')
 STATE_COLORS = {
     'RR': '#3498db', # Azul
     'AP': '#2ecc71', # Verde
-    'AC': '#e74c3c'  # Vermelho
+    'AC': '#e74c3c', # Vermelho
+    'TO': '#f1c40f', # Amarelo
+    'SE': '#9b59b6'  # Roxo
 }
 
 def format_millions(x, pos):
@@ -32,7 +34,7 @@ def generate_comparison_report():
     query_vol = """
         SELECT uf, SUM(total_eventos) as total
         FROM section_metadata
-        WHERE uf IN ('RR', 'AP', 'AC')
+        WHERE uf IN ('RR', 'AP', 'AC', 'TO', 'SE')
         GROUP BY uf
         ORDER BY total DESC
     """
@@ -65,7 +67,7 @@ def generate_comparison_report():
     query_temp = """
         SELECT uf, hora, SUM(quantidade) as qtd
         FROM temporal_metrics
-        WHERE uf IN ('RR', 'AP', 'AC')
+        WHERE uf IN ('RR', 'AP', 'AC', 'TO', 'SE')
         GROUP BY uf, hora
         ORDER BY hora
     """

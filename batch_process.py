@@ -42,12 +42,14 @@ def save_metadata_batch(metadata_list: List[Dict]):
                 INSERT INTO section_metadata (
                     uf, turno, municipio_codigo, zona, secao,
                     total_eventos, periodo_inicio, periodo_fim, duracao_segundos,
-                    modelo_urna, aplicativos_usados, severidades, hash_arquivo
+                    modelo_urna, votos_computados, eleitores_habilitados,
+                    aplicativos_usados, severidades, hash_arquivo
                 )
                 VALUES (
                     :uf, :turno, :municipio_codigo, :zona, :secao,
                     :total_eventos, :periodo_inicio, :periodo_fim, :duracao_segundos,
-                    :modelo_urna, :aplicativos_usados, :severidades, :hash_arquivo
+                    :modelo_urna, :votos_computados, :eleitores_habilitados,
+                    :aplicativos_usados, :severidades, :hash_arquivo
                 )
                 ON CONFLICT (uf, turno, municipio_codigo, zona, secao)
                 DO UPDATE SET
@@ -56,6 +58,8 @@ def save_metadata_batch(metadata_list: List[Dict]):
                     periodo_fim = EXCLUDED.periodo_fim,
                     duracao_segundos = EXCLUDED.duracao_segundos,
                     modelo_urna = EXCLUDED.modelo_urna,
+                    votos_computados = EXCLUDED.votos_computados,
+                    eleitores_habilitados = EXCLUDED.eleitores_habilitados,
                     aplicativos_usados = EXCLUDED.aplicativos_usados,
                     severidades = EXCLUDED.severidades,
                     hash_arquivo = EXCLUDED.hash_arquivo
@@ -70,6 +74,8 @@ def save_metadata_batch(metadata_list: List[Dict]):
                 'periodo_fim': metadata.get('periodo_fim'),
                 'duracao_segundos': metadata.get('duracao_segundos'),
                 'modelo_urna': metadata.get('modelo_urna'),
+                'votos_computados': metadata.get('votos_computados', 0),
+                'eleitores_habilitados': metadata.get('eleitores_habilitados', 0),
                 'aplicativos_usados': metadata.get('aplicativos_usados', []),
                 'severidades': severidades_json,
                 'hash_arquivo': metadata.get('hash_arquivo')

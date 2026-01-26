@@ -15,14 +15,14 @@ app = typer.Typer(help="BRURNA Analytics - Processador de Logs do TSE")
 def download(
     uf: str = typer.Option(..., help="UF para download (ex: ac, sp)"),
     limit: Optional[int] = typer.Option(None, help="Limitar número de seções a baixar"),
-    resume: bool = typer.Option(False, help="Retomar download interrompido")
+    turno: int = typer.Option(1, help="Turno da eleição (1 ou 2)")
 ):
-    """Baixa logs do TSE"""
-    print(f"📥 Iniciando download - UF: {uf.upper()}")
+    """Baixa logs do TSE (1º ou 2º Turno)"""
+    print(f"📥 Iniciando download - UF: {uf.upper()} (Turno {turno})")
     
     try:
         from download.downloader import TSEDownloader
-        downloader = TSEDownloader()
+        downloader = TSEDownloader(turno=turno)
         
         if limit:
             print(f"⚠️  Limitado às primeiras {limit} seções")
@@ -32,33 +32,32 @@ def download(
         
         if resultados is not None and not resultados.empty:
             secoes_baixadas = resultados['baixado'].sum()
-            print(f"✅ Download concluído para UF {uf.upper()}")
+            print(f"✅ Download concluído para UF {uf.upper()} T{turno}")
             print(f"   Seções baixadas: {secoes_baixadas}/{len(resultados)}")
         else:
             print("⚠️  Nenhuma seção foi baixada")
             
-    except ImportError as e:
-        print(f"❌ Erro ao importar módulo: {e}")
-        print("Certifique-se de que o módulo download.downloader existe.")
     except Exception as e:
         print(f"❌ Erro durante o download: {e}")
 
 @app.command()
 def parse(
     uf: str = typer.Option(..., help="UF para parsear (ex: ac, sp)"),
-    limit: Optional[int] = typer.Option(10, help="Limitar número de seções a processar"),
+    limit: Optional[int] = typer.Option(None, help="Limitar número de seções a processar"),
+    turno: int = typer.Option(1, help="Turno da eleição (1 ou 2)"),
     output: str = typer.Option("parquet", help="Formato de saída: parquet, csv, json, all"),
     cleanup: bool = typer.Option(False, help="Limpar arquivos temporários após processamento")
 ):
-    """Parseia logs baixados"""
-    print(f"🔍 Iniciando parsing - UF: {uf.upper()}, Limite: {limit}, Formato: {output}")
+    """Parseia logs baixados (1º ou 2º Turno)"""
+    print(f"🔍 Iniciando parsing - UF: {uf.upper()} T{turno}, Limite: {limit}, Formato: {output}")
     
     try:
         from parser.log_parser import TSELogParser
-        from database.db_writer import save_parsed_logs
         import pandas as pd
         
-        raw_dir = config.RAW_LOGS_DIR / uf
+        # Define diretório baseado no turno
+        uf_path = uf if turno == 1 else f"{uf}/t2"
+        raw_dir = config.RAW_LOGS_DIR / uf_path
         
         # Lista todos os arquivos .logjez
         files = list(raw_dir.glob('*.logjez'))
@@ -93,9 +92,12 @@ def parse(
                         
                         # Cria parser e processa
                         parser = TSELogParser(str(file))
-                        df = parser.parse_file(uf=uf, turno=1)
+                        df = parser.parse_file()
                         
                         if not df.empty:
+                            # Adiciona metadados de identificação
+                            df['uf'] = uf.upper()
+                            df['turno'] = turno
                             todos_dados.append(df)
                             print(f"   ✅ Processadas {len(df)} linhas")
                         else:
@@ -208,6 +210,38 @@ def analyze(
         
     except Exception as e:
         print(f"❌ Erro durante a análise: {e}")
+
+@app.command()
+def sync_results(
+    uf: str = typer.Option(..., help="UF para sincronizar"),
+    year: int = typer.Option(2022, help="Ano da eleição")
+):
+    """Sincroniza logs processados com dados oficiais do TSE (BU)"""
+    print(f"⚖️ Iniciando cruzamento de auditoria - UF: {uf.upper()} ({year})")
+    
+    try:
+        from analytics.tse_data_integrator import TSEDataIntegrator
+        integrator = TSEDataIntegrator(year=year)
+        
+        # Realiza o merge massivo
+        merged = integrator.merge_with_tse_data(uf)
+        
+        if not merged.empty:
+            output_file = f"auditoria_cruzada_{uf.lower()}_{year}.csv"
+            merged.to_csv(output_file, index=False)
+            print(f"✅ Auditoria concluída. {len(merged)} seções validadas.")
+            print(f"📄 Resultado salvo em: {output_file}")
+            
+            # Análise básica de discrepância
+            merged['discrepancia_votos'] = merged['total_eventos'] - merged['QT_COMPARECIMENTO'] # Simplificado
+            discrepantes = merged[merged['discrepancia_votos'].abs() > 1000] # Exemplo de threshold
+            if not discrepantes.empty:
+                print(f"⚠️ Alerta: {len(discrepantes)} seções com alto volume de anomalias detectadas.")
+        else:
+            print("❌ Falha ao cruzar dados. Verifique se a UF já foi parseada.")
+            
+    except Exception as e:
+        print(f"❌ Erro durante a sincronização: {e}")
 
 @app.command()
 def test():

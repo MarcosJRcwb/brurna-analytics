@@ -82,9 +82,13 @@ def aggregate_patterns(df: pd.DataFrame) -> pd.DataFrame:
         - severidade: Severidade do log
         - aplicativo: Aplicativo que gerou o log
     """
-    if df.empty:
-        return pd.DataFrame()
-    
+    # Verifica se a coluna mensagem existe
+    if 'mensagem' not in df.columns:
+        if df.empty:
+            return pd.DataFrame()
+        else:
+            raise KeyError(f"Coluna 'mensagem' não encontrada. Colunas disponíveis: {df.columns.tolist()}")
+
     # Cria coluna com mensagem normalizada
     df['mensagem_padrao'] = df['mensagem'].apply(normalize_message)
     
@@ -152,7 +156,8 @@ def extract_section_metadata(
     municipio_codigo: str = None,
     zona: str = None,
     secao: str = None,
-    hash_arquivo: str = None
+    hash_arquivo: str = None,
+    secao_info: Dict = None
 ) -> Dict:
     """
     Extrai metadados resumidos de uma seção eleitoral.
@@ -183,8 +188,10 @@ def extract_section_metadata(
     periodo_fim = df_valid['timestamp'].max()
     duracao_segundos = int((periodo_fim - periodo_inicio).total_seconds()) if pd.notna(periodo_inicio) and pd.notna(periodo_fim) else 0
     
-    # Modelo de Urna (capturado pelo parser)
-    modelo_urna = secao_info.get('modelo_urna')
+    # Contadores de Auditoria (votos e eleitores)
+    # Padrões identificados: "Eleitor foi habilitado" e "O voto do eleitor foi computado"
+    votos_computados = len(df_valid[df_valid['mensagem'].str.contains('voto do eleitor foi computado', case=False, na=False)])
+    eleitores_habilitados = len(df_valid[df_valid['mensagem'].str.contains('Eleitor foi habilitado', case=False, na=False)])
     
     # Lista de aplicativos usados
     aplicativos_usados = df_valid['aplicativo'].dropna().unique().tolist()
@@ -202,7 +209,9 @@ def extract_section_metadata(
         'periodo_inicio': periodo_inicio,
         'periodo_fim': periodo_fim,
         'duracao_segundos': duracao_segundos,
-        'modelo_urna': modelo_urna,
+        'modelo_urna': secao_info.get('modelo_urna') if secao_info else None,
+        'votos_computados': votos_computados,
+        'eleitores_habilitados': eleitores_habilitados,
         'aplicativos_usados': aplicativos_usados,
         'severidades': severidades,
         'hash_arquivo': hash_arquivo
@@ -249,7 +258,7 @@ def aggregate_logs(
         zona=secao_info.get('zona'),
         secao=secao_info.get('secao'),
         hash_arquivo=secao_info.get('hash_arquivo'),
-        # Passamos as infos extras de secao_info para o metadata
+        secao_info=secao_info # Passamos secao_info completo
     )
     # Garante que modelo_urna de secao_info entre no metadata final se não foi extraído antes
     if 'modelo_urna' in secao_info and not metadata.get('modelo_urna'):
