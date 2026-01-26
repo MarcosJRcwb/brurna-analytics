@@ -64,11 +64,33 @@ if not stats_df.empty:
     expected_total = 400000
     progress_pct = min(total_logs / expected_total, 1.0)
     
-    col_prog1, col_prog2 = st.columns([3, 1])
+    col_prog1, col_prog2, col_prog3 = st.columns([3, 1, 2])
     with col_prog1:
         st.progress(progress_pct, text=f"Progresso: {total_logs:,} / ~{expected_total:,} logs ({progress_pct*100:.1f}%)")
     with col_prog2:
-        st.metric("Taxa", f"{total_logs/37:.0f} logs/min" if total_logs > 0 else "Calculando...")
+        # Taxa de processamento (logs por minuto)
+        elapsed_minutes = 55  # Tempo decorrido desde início da ingestão (atualizar dinamicamente se possível)
+        rate_per_min = total_logs / elapsed_minutes if elapsed_minutes > 0 else 0
+        st.metric("Taxa", f"{rate_per_min:.0f} logs/min" if total_logs > 0 else "Calculando...")
+    with col_prog3:
+        # Estimativa de conclusão
+        if rate_per_min > 0:
+            remaining_logs = expected_total - total_logs
+            remaining_minutes = remaining_logs / rate_per_min
+            remaining_hours = remaining_minutes / 60
+            
+            if remaining_hours >= 24:
+                days = int(remaining_hours // 24)
+                hours = int(remaining_hours % 24)
+                eta_text = f"{days}d {hours}h ({remaining_hours:.1f}h total)"
+            else:
+                hours = int(remaining_hours)
+                minutes = int((remaining_hours - hours) * 60)
+                eta_text = f"{hours}h {minutes}min ({remaining_hours:.1f}h total)"
+            
+            st.metric("⏱️ ETA", eta_text)
+        else:
+            st.metric("⏱️ ETA", "Calculando...")
     
     # Detalhamento por estado
     cols = st.columns(len(stats_df))
@@ -154,15 +176,65 @@ with tab1:
         st.subheader("📉 Dinâmica Temporal (H001)")
         temp_df = get_temporal_data()
         if not temp_df.empty:
-            fig_temp = px.line(temp_df, x='hora', y='vol', title='Volume de Votos por Hora', markers=True)
-            fig_temp.update_layout(hovermode='x unified')
+            # Criar gráfico de linha com melhorias
+            fig_temp = px.line(temp_df, x='hora', y='vol', 
+                              title='Volume de Votos por Hora',
+                              markers=True)
+            
+            # Configurar eixo X para mostrar todas as horas (0-23)
+            fig_temp.update_xaxes(
+                dtick=1,  # Intervalo de 1 hora
+                range=[-0.5, 23.5],
+                title="Hora do Dia"
+            )
+            
+            # Configurar eixo Y
+            fig_temp.update_yaxes(title="Volume de Votos")
+            
+            # Adicionar valores nos pontos
+            fig_temp.update_traces(
+                textposition='top center',
+                texttemplate='%{y:,.0f}',
+                mode='lines+markers+text',
+                line=dict(color='#0066cc', width=3),
+                marker=dict(size=8, color='#ff6600')
+            )
+            
+            # Melhorar layout
+            fig_temp.update_layout(
+                hovermode='x unified',
+                showlegend=False,
+                height=400
+            )
+            
             st.plotly_chart(fig_temp, use_container_width=True)
         else:
             st.info("Sem dados temporais.")
     
     with col_charts_2:
         st.subheader("📊 Distribuição de Resultados")
-        fig_pie = px.pie(df, names="Status", title="Status das Hipóteses", hole=0.4)
+        
+        # Criar gráfico de pizza com cores vibrantes
+        status_counts = df['Status'].value_counts()
+        
+        # Paleta de cores personalizada
+        colors = ['#00cc66', '#0099ff', '#ff9900', '#ff3366', '#9933ff', '#ffcc00']
+        
+        fig_pie = px.pie(
+            values=status_counts.values,
+            names=status_counts.index,
+            title="Status das Hipóteses",
+            hole=0.4,
+            color_discrete_sequence=colors
+        )
+        
+        # Adicionar percentuais nos labels
+        fig_pie.update_traces(
+            textposition='inside',
+            textinfo='percent+label',
+            textfont_size=12
+        )
+        
         st.plotly_chart(fig_pie, use_container_width=True)
 
 with tab2:

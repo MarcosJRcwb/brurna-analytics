@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Técnico Brurna Analytics - Nacional</title>
+    <style>
+        body { font-family: 'Times New Roman', serif; margin: 40px; line-height: 1.6; }
+        h1 { color: #003366; border-bottom: 3px solid #003366; padding-bottom: 10px; }
+        h2 { color: #0066cc; margin-top: 30px; }
+        .metric { background: #f0f0f0; padding: 15px; margin: 10px 0; border-left: 4px solid #0066cc; }
+        .anomaly { background: #fff3cd; padding: 10px; margin: 5px 0; border-left: 4px solid #ff9800; }
+        .footer { margin-top: 50px; font-size: 0.9em; color: #666; border-top: 1px solid #ccc; padding-top: 20px; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #003366; color: white; }
+    </style>
+</head>
+<body>
+    <h1>RELATÓRIO TÉCNICO-JURÍDICO BRURNA ANALYTICS</h1>
+    <h2>Análise Nacional Consolidada</h2>
+    
+    <div class="metric">
+        <strong>Período de Análise:</strong> 26/01/2026 03:00<br>
+        <strong>Estados Analisados:</strong> AC, AP, RR, TO, SE<br>
+        <strong>Total de Logs Processados:</strong> 96,474<br>
+        <strong>Total de Seções:</strong> 189
+    </div>
+    
+    <h2>I. SUMÁRIO EXECUTIVO</h2>
+    <div class="metric">
+        <strong>Cobertura de Hipóteses:</strong> 99.8% (500 de 500)<br>
+        <strong>Anomalias Detectadas:</strong> 4<br>
+        <strong>Status Geral:</strong> CONFORME
+    </div>
+    
+    <h2>II. ANOMALIAS DETECTADAS</h2>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Descrição</th>
+            <th>Status</th>
+            <th>Observação</th>
+        </tr>
+
+        <tr>
+            <td>H164</td>
+            <td>Não há perda de dados durante a troca de bateria (memória não volátil)....</td>
+            <td>FAIL (Anomaly)</td>
+            <td>Found 820 logs matching keywords: ['bateria', 'battery', 'carga']...</td>
+        </tr>
+
+        <tr>
+            <td>H261</td>
+            <td>Não há logs compartilhando a mesma assinatura digital em seções diferentes....</td>
+            <td>FAIL (Anomaly)</td>
+            <td>Found 14907 logs matching keywords: ['assinatura', 'sign', 'hash']...</td>
+        </tr>
+
+        <tr>
+            <td>H300</td>
+            <td>Arquivos ocultos ou estranhos não existem na mídia de resultados....</td>
+            <td>FAIL (Anomaly)</td>
+            <td>Found 164 logs matching keywords: ['arquivos']...</td>
+        </tr>
+
+        <tr>
+            <td>H464</td>
+            <td>Detecção de anomalias via Isolation Forest não aponta fraude sistêmica....</td>
+            <td>FAIL (Anomaly Detected)</td>
+            <td>Found 31 anomalies. Top: H8:Vol10454641:Err0, H10:Vol10324225:Err0, H11:Vol10212028:Err0...</td>
+        </tr>
+
+    </table>
+    
+    <h2>III. PARECER JURÍDICO</h2>
+    <p><strong>Fundamentação Legal:</strong> Art. 5º da Resolução TSE 23.603/2019</p>
+    <p>
+    Com base na análise estatística realizada pelo sistema Brurna Analytics, 
+    conclui-se que os dados apresentam <strong>indícios</strong> de comportamento 
+    atípico em 4 hipóteses (0.8% do total).
+    </p>
+    <p>
+    Tais indícios, por si sós, não configuram prova material de irregularidade 
+    eleitoral, mas merecem aprofundamento mediante auditoria complementar, 
+    nos termos do art. 103 do Código Eleitoral.
+    </p>
+    
+    <h2>IV. RECOMENDAÇÕES</h2>
+    <ul>
+        <li>Auditoria física das urnas com anomalias detectadas</li>
+        <li>Verificação de lacres e BU impresso vs. digital</li>
+        <li>Análise forense de logs com timestamps suspeitos</li>
+        <li>Monitoramento contínuo em eleições futuras</li>
+    </ul>
+    
+    <div class="footer">
+        <p><strong>AVISO LEGAL:</strong> Este relatório é gerado por sistema automatizado de análise estatística 
+        e não substitui perícia oficial da Justiça Eleitoral. Os pareceres jurídicos são fundamentados em 
+        legislação vigente e jurisprudência, mas não constituem decisão judicial. Uso restrito para fins de 
+        auditoria interna e transparência.</p>
+        <p><strong>Gerado em:</strong> 26/01/2026 às 03:00:21</p>
+        <p><strong>Sistema:</strong> Brurna Analytics v1.0 | <strong>Agente:</strong> TSE Justice</p>
+    </div>
+</body>
+</html>
