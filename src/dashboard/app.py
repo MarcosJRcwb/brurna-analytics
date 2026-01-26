@@ -44,6 +44,18 @@ if elapsed > 300:  # 5 minutos
 def get_db():
     return create_engine(config.POSTGRES_CONN)
 
+def get_execution_status():
+    """Read live status from JSON file."""
+    import json
+    status_path = Path("execution_status.json")
+    if status_path.exists():
+        try:
+            with open(status_path, 'r') as f:
+                return json.load(f)
+        except:
+            return None
+    return None
+
 def get_ingestion_stats():
     """Query live row counts per state based on source_file path/name."""
     try:
@@ -235,7 +247,7 @@ col4.metric("Anomalias Detectadas", anomalies, delta_color="inverse")
 st.markdown("---")
 
 # --- TABS PARA ORGANIZAÇÃO ---
-tab1, tab2, tab3 = st.tabs(["📊 Visão Geral", "🔍 Análise Profunda", "📋 Detalhamento"])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Visão Geral", "🔍 Análise Profunda", "📋 Detalhamento", "🚀 Monitor de Execução"])
 
 with tab1:
     # Metrics
@@ -408,6 +420,68 @@ with tab3:
         hide_index=True
     )
 
+with tab4:
+    st.subheader("🚀 Monitor de Execução em Tempo Real")
+    
+    status = get_execution_status()
+    if status:
+        # Progress Bar
+        st.progress(status["percentage"] / 100, 
+                   text=f"Progresso: {status['progress']} / {status['total']} hipóteses ({format_number(status['percentage'], 1)}%)")
+        
+        m_col1, m_col2, m_col3 = st.columns(3)
+        m_col1.metric("Hipótese Atual", status["current_id"])
+        
+        avg_step = status["avg_step_seconds"]
+        m_col2.metric("Tempo Médio/Teste", f"{format_number(avg_step, 2)}s")
+        
+        eta = status["eta_seconds"]
+        eta_h = eta / 3600
+        m_col3.metric("⏱️ ETA Restante", f"{format_number(eta_h, 1)}h" if eta_h >= 1 else f"{format_number(eta/60, 0)}min")
+        
+        st.divider()
+        
+        # Last Result Preview
+        if status.get("last_result"):
+            lr = status["last_result"]
+            st.write("### 🆕 Último Resultado:")
+            res_col1, res_col2 = st.columns([1, 4])
+            with res_col1:
+                st.info(f"**{lr['ID']}**")
+                if "FAIL" in lr['Status']:
+                    st.error(lr['Status'])
+                elif "PASS" in lr['Status']:
+                    st.success(lr['Status'])
+                else:
+                    st.warning(lr['Status'])
+            with res_col2:
+                st.write(f"**Descrição**: {lr['Description']}")
+                st.write(f"**Observação**: {lr['Observation']}")
+                
+        st.divider()
+        
+        # Live Anomaly Detector
+        st.write("### ⚠️ Anomalias Detectadas Recentemente")
+        if os.path.exists("analysis_results.csv"):
+            res_df = pd.read_csv("analysis_results.csv")
+            anomalies = res_df[res_df["Status"].str.contains("FAIL") | res_df["Status"].str.contains("Anomaly")].tail(5)
+            if not anomalies.empty:
+                st.table(anomalies[["ID", "Status", "Observation"]])
+            else:
+                st.success("Nenhuma anomalia detectada até o momento.")
+    else:
+        st.info("Aguardando início do motor analítico...")
+        if st.button("▶️ Iniciar Motor em Background"):
+            import subprocess
+            subprocess.Popen([sys.executable, "src/analytics/analytical_engine.py"], 
+                             stdout=open("logs/analytical_engine.out", "a"),
+                             stderr=open("logs/analytical_engine.err", "a"),
+                             creationflags=subprocess.CREATE_NEW_CONSOLE if os.name == 'nt' else 0)
+            st.success("Motor disparado! O monitor atualizará em instantes.")
+            time.sleep(2)
+            st.rerun()
+
 # Auto-refresh note
-st.caption("💡 Dados atualizados automaticamente. Use o botão '🔄 Atualizar' na barra lateral para forçar refresh.")
+st.caption("💡 Dados atualizados automaticamente a cada 5 min. Use 'F5' ou o botão na sidebar para atualizar o monitor instantaneamente.")
+
 

@@ -46,6 +46,45 @@ class AnalyticalEngine:
         self.g4_checker = G4CrossChecker(self.engine)
         
         self.hypotheses = self._load_plan()
+        self.state_path = Path("execution_state.json")
+        self.status_path = Path("execution_status.json")
+        self.execution_times = {} # Benchmarking
+        
+    def _save_state(self, completed_ids):
+        import json
+        with open(self.state_path, 'w') as f:
+            json.dump(list(completed_ids), f)
+
+    def _load_state(self):
+        import json
+        if self.state_path.exists():
+            with open(self.state_path, 'r') as f:
+                return set(json.load(f))
+        return set()
+
+    def _update_live_status(self, current_h, progress, total, last_result=None):
+        import json
+        import time
+        
+        # Calculate ETA
+        avg_time = 0
+        if self.execution_times:
+            avg_time = sum(self.execution_times.values()) / len(self.execution_times)
+        
+        eta_seconds = avg_time * (total - progress)
+        
+        status = {
+            "current_id": current_h,
+            "progress": progress,
+            "total": total,
+            "percentage": (progress / total) * 100 if total > 0 else 0,
+            "avg_step_seconds": avg_time,
+            "eta_seconds": eta_seconds,
+            "last_update": datetime.now().isoformat(),
+            "last_result": last_result
+        }
+        with open(self.status_path, 'w') as f:
+            json.dump(status, f)
         
     def _load_plan(self):
         """Parse the markdown plan to extract hypotheses IDs and descriptions."""
@@ -351,23 +390,58 @@ class AnalyticalEngine:
             return "SKIPPED", f"Log Check Error: {e}"
 
     def execute_all(self):
-        """Run all loaded hypotheses and save results."""
-        results = []
-        print(f"🚀 Starting execution of {len(self.hypotheses)} hypotheses...")
+        """Run all loaded hypotheses and save results with checkpointing."""
+        import time
         
+        completed_ids = self._load_state()
+        results = []
+        
+        # Load existing results if resuming
+        if self.results_path.exists() and completed_ids:
+            try:
+                results = pd.read_csv(self.results_path).to_dict('records')
+            except:
+                results = []
+
+        total = len(self.hypotheses)
+        print(f"🚀 Starting execution of {total} hypotheses...")
+        if completed_ids:
+            print(f"🔄 Resuming from checkpoint. {len(completed_ids)} tests already completed.")
+        
+        count = len(completed_ids)
         for h_id, desc in self.hypotheses.items():
+            if h_id in completed_ids:
+                continue
+                
             print(f"Processing {h_id}...", end="\r")
+            
+            start_t = time.time()
             status, observation = self.run_check(h_id, desc)
-            results.append({
+            end_t = time.time()
+            
+            # Benchmarking
+            self.execution_times[h_id] = end_t - start_t
+            
+            res_item = {
                 "ID": h_id,
                 "Description": desc,
                 "Status": status,
                 "Observation": observation,
                 "Timestamp": datetime.now().isoformat()
-            })
+            }
+            results.append(res_item)
             
-        df_res = pd.DataFrame(results)
-        df_res.to_csv(self.results_path, index=False)
+            # Update State
+            completed_ids.add(h_id)
+            self._save_state(completed_ids)
+            
+            # Incremental CSV Save
+            pd.DataFrame(results).to_csv(self.results_path, index=False)
+            
+            # Live Status for Dashboard
+            count += 1
+            self._update_live_status(h_id, count, total, res_item)
+            
         print(f"\n✅ Execution completed. Results saved to {self.results_path}")
 
 if __name__ == "__main__":
