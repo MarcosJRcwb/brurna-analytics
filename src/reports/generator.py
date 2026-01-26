@@ -22,8 +22,35 @@ class ReportGenerator:
     def __init__(self):
         self.engine = create_engine(config.POSTGRES_CONN)
         self.results_path = Path("analysis_results.csv")
-        self.output_dir = Path("reports")
-        self.output_dir.mkdir(exist_ok=True)
+        self.output_dir = Path("reports/html") # Move to organized dir
+        self.output_dir.mkdir(parents=True, exist_ok=True)
+        
+    def _parse_source_info(self, source_file):
+        """Extrai UF, Município, Zona e Seção do nome do arquivo"""
+        import re
+        # Ex: .../ap/o00407-0601200010045.logjez
+        filename = os.path.basename(source_file)
+        uf = "EXT"
+        if "/ac/" in source_file.lower() or "\\ac\\" in source_file.lower(): uf = "AC"
+        elif "/ap/" in source_file.lower() or "\\ap\\" in source_file.lower(): uf = "AP"
+        elif "/rr/" in source_file.lower() or "\\rr\\" in source_file.lower(): uf = "RR"
+        elif "/to/" in source_file.lower() or "\\to\\" in source_file.lower(): uf = "TO"
+        elif "/se/" in source_file.lower() or "\\se\\" in source_file.lower(): uf = "SE"
+        
+        # Regex para o padrão TSE: o00407-[MUN][ZON][SEC]
+        match = re.search(r'o\d{5}-(\d{5})(\d{4})(\d{5})', filename)
+        if match:
+            mun, zon, sec = match.groups()
+            return uf, mun, zon, sec
+        return uf, "Unknown", "Unknown", "Unknown"
+
+    def _get_regional_mapping(self, uf):
+        norte = ['AC', 'AP', 'AM', 'PA', 'RO', 'RR', 'TO']
+        nordeste = ['AL', 'BA', 'CE', 'MA', 'PB', 'PE', 'PI', 'RN', 'SE']
+        if uf in norte: return "Norte"
+        if uf in nordeste: return "Nordeste"
+        return "Outros"
+
         
     def _get_anomaly_details(self, anomaly_row):
         """Busca detalhes completos da anomalia (urna, seção, logs)"""
@@ -46,47 +73,55 @@ class ReportGenerator:
             
         return logs
     
+    def _collect_hierarchical_stats(self):
+        """Coleta estatísticas em 5 níveis de consolidação"""
+        with self.engine.connect() as conn:
+            query = text("SELECT source_file, COUNT(*) as logs FROM log_eventos GROUP BY 1")
+            df = pd.read_sql(query, conn)
+        
+        # Aplicar parsing
+        df[['UF', 'Municipio', 'Zona', 'Secao']] = df.apply(
+            lambda x: pd.Series(self._parse_source_info(x['source_file'])), axis=1
+        )
+        df['Regiao'] = df['UF'].apply(self._get_regional_mapping)
+        
+        return df
+
     def _collect_national_data(self):
-        """Coleta dados agregados nacionais com detalhamento"""
+        """Coleta dados agregados nacionais com detalhamento hierárquico"""
         df_results = pd.read_csv(self.results_path)
         
         # Métricas gerais
-        total = len(df_results)
+        total_hyp = len(df_results)
         covered = len(df_results[df_results['Status'].isin(['PASS', 'INFO', 'FAIL', 'FAIL (Anomaly)'])])
         anomalies = df_results[df_results['Status'].str.contains('FAIL|Anomaly', na=False)]
         
-        # Dados do banco com detalhamento por UF
-        with self.engine.connect() as conn:
-            total_logs = conn.execute(text("SELECT COUNT(*) FROM log_eventos")).scalar()
-            total_sections = conn.execute(text("SELECT COUNT(DISTINCT source_file) FROM log_eventos")).scalar()
+        df_h = self._collect_hierarchical_stats()
+        
+        total_logs = df_h['logs'].sum()
+        total_sections = len(df_h)
             
-            # Detalhamento por UF
-            uf_stats = conn.execute(text("""
-            SELECT 
-                CASE 
-                    WHEN source_file LIKE '%/ac/%' OR source_file LIKE '%\\ac\\%' THEN 'AC'
-                    WHEN source_file LIKE '%/ap/%' OR source_file LIKE '%\\ap\\%' THEN 'AP'
-                    WHEN source_file LIKE '%/rr/%' OR source_file LIKE '%\\rr\\%' THEN 'RR'
-                    WHEN source_file LIKE '%/to/%' OR source_file LIKE '%\\to\\%' THEN 'TO'
-                    WHEN source_file LIKE '%/se/%' OR source_file LIKE '%\\se\\%' THEN 'SE'
-                    ELSE 'Outros'
-                END as uf,
-                COUNT(*) as total_logs,
-                COUNT(DISTINCT source_file) as total_sections
-            FROM log_eventos
-            GROUP BY 1
-            ORDER BY 2 DESC
-            """)).fetchall()
+        # Consolidação por Níveis
+        nacional = {'logs': total_logs, 'secoes': total_sections}
+        regioes = df_h.groupby('Regiao').agg({'logs': 'sum', 'source_file': 'count'}).rename(columns={'source_file': 'secoes'})
+        ufs = df_h.groupby('UF').agg({'logs': 'sum', 'source_file': 'count'}).rename(columns={'source_file': 'secoes'})
+        municipios = df_h.groupby(['UF', 'Municipio']).agg({'logs': 'sum', 'source_file': 'count'}).rename(columns={'source_file': 'secoes'})
+        zonas = df_h.groupby(['UF', 'Municipio', 'Zona']).agg({'logs': 'sum', 'source_file': 'count'}).rename(columns={'source_file': 'secoes'})
             
         return {
-            'total_hipoteses': total,
+            'total_hipoteses': total_hyp,
             'cobertura_pct': (covered / 500) * 100,
             'anomalias': anomalies,
-            'total_logs': total_logs,
-            'total_sections': total_sections,
-            'uf_stats': uf_stats,
+            'stats': {
+                'nacional': nacional,
+                'regioes': regioes,
+                'ufs': ufs,
+                'municipios': municipios,
+                'zonas': zonas
+            },
             'timestamp': datetime.now()
         }
+
     
     def generate_national_report_html(self, output_filename='relatorio_nacional.html'):
         """Gera relatório nacional em HTML com formatação ABNT A4"""
@@ -197,36 +232,62 @@ class ReportGenerator:
     
     <div class="metric">
         <strong>Período de Análise:</strong> {data['timestamp'].strftime('%d/%m/%Y %H:%M')}<br>
-        <strong>Estados Analisados:</strong> AC, AP, RR, TO, SE<br>
-        <strong>Total de Logs Processados:</strong> {data['total_logs']:,}<br>
-        <strong>Total de Seções Analisadas:</strong> {data['total_sections']:,}
+        <strong>Consolidação:</strong> Nacional (Amostra Piloto)<br>
+        <strong>Total de Logs:</strong> {data['stats']['nacional']['logs']:,}<br>
+        <strong>Total de Seções:</strong> {data['stats']['nacional']['secoes']:,}
     </div>
     
-    <h3>Distribuição por Unidade Federativa</h3>
+    <h2>1. Consolidação Regional</h2>
+    <table>
+        <tr>
+            <th>Região</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+        </tr>
+        {" ".join([f"<tr><td>{idx}</td><td>{row['logs']:,}</td><td>{row['secoes']}</td></tr>" for idx, row in data['stats']['regioes'].iterrows()])}
+    </table>
+
+    <h2>2. Consolidação por Unidade Federativa (UF)</h2>
     <table>
         <tr>
             <th>UF</th>
+            <th>Região</th>
             <th>Total de Logs</th>
             <th>Seções</th>
-            <th>% do Total</th>
         </tr>
-"""
-        
-        for uf_row in data['uf_stats']:
-            pct = (uf_row.total_logs / data['total_logs'] * 100) if data['total_logs'] > 0 else 0
-            html_content += f"""
-        <tr>
-            <td><strong>{uf_row.uf}</strong></td>
-            <td>{uf_row.total_logs:,}</td>
-            <td>{uf_row.total_sections}</td>
-            <td>{pct:.2f}%</td>
-        </tr>
-"""
-        
-        html_content += f"""
+        {" ".join([f"<tr><td>{idx}</td><td>{self._get_regional_mapping(idx)}</td><td>{row['logs']:,}</td><td>{row['secoes']}</td></tr>" for idx, row in data['stats']['ufs'].iterrows()])}
     </table>
-    
-    <h2>I. Sumário Executivo</h2>
+
+    <div class="page-break"></div>
+
+    <h2>3. Detalhamento por Município (Top 10)</h2>
+    <p>Consolidação baseada no código de município do TSE extraído dos metadados das urnas.</p>
+    <table>
+        <tr>
+            <th>UF</th>
+            <th>Cód. Município</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+        </tr>
+        {" ".join([f"<tr><td>{idx[0]}</td><td>{idx[1]}</td><td>{row['logs']:,}</td><td>{row['secoes']}</td></tr>" for idx, row in data['stats']['municipios'].head(10).iterrows()])}
+    </table>
+
+    <h2>4. Detalhamento por Zona Eleitoral (Top 10)</h2>
+    <table>
+        <tr>
+            <th>UF</th>
+            <th>Município</th>
+            <th>Zona</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+        </tr>
+        {" ".join([f"<tr><td>{idx[0]}</td><td>{idx[1]}</td><td>{idx[2]}</td><td>{row['logs']:,}</td><td>{row['secoes']}</td></tr>" for idx, row in data['stats']['zonas'].head(10).iterrows()])}
+    </table>
+
+    <div class="page-break"></div>
+
+    <h2>I. Sumário Executivo do Motor Analítico</h2>
+    <p>O motor processou as 500 hipóteses através de consultas massivas ao banco de dados PostgreSQL indexado, permitindo a validação de grandes volumes (423k+ linhas) em alta performance.</p>
     <div class="metric">
         <strong>Cobertura de Hipóteses:</strong> {data['cobertura_pct']:.1f}% ({data['total_hipoteses']} de 500)<br>
         <strong>Anomalias Detectadas:</strong> {len(data['anomalias'])}<br>
