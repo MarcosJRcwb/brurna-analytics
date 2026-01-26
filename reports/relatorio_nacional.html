@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Relatório Técnico-Jurídico Brurna Analytics - Nacional</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 3cm 2cm 2cm 3cm; /* ABNT: superior 3cm, esquerda 3cm, direita 2cm, inferior 2cm */
+        }
+        body { 
+            font-family: 'Times New Roman', serif; 
+            font-size: 12pt;
+            line-height: 1.5;
+            margin: 0;
+            padding: 20px;
+            max-width: 21cm;
+        }
+        h1 { 
+            color: #000; 
+            font-size: 14pt;
+            font-weight: bold;
+            text-align: center;
+            text-transform: uppercase;
+            margin: 20px 0;
+        }
+        h2 { 
+            color: #000; 
+            font-size: 12pt;
+            font-weight: bold;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        h3 {
+            color: #000;
+            font-size: 12pt;
+            font-weight: bold;
+            font-style: italic;
+            margin-top: 15px;
+        }
+        .metric { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-left: 3px solid #003366; 
+        }
+        .anomaly-detail {
+            background: #fff9e6;
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid #ffc107;
+            page-break-inside: avoid;
+        }
+        .log-excerpt {
+            font-family: 'Courier New', monospace;
+            font-size: 9pt;
+            background: #f0f0f0;
+            padding: 10px;
+            margin: 10px 0;
+            border-left: 3px solid #666;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+        .urna-info {
+            font-size: 10pt;
+            color: #555;
+            margin: 5px 0;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin: 15px 0;
+            font-size: 10pt;
+        }
+        th, td { 
+            border: 1px solid #000; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #e0e0e0; 
+            font-weight: bold;
+        }
+        .footer { 
+            margin-top: 30px; 
+            font-size: 10pt; 
+            color: #666; 
+            border-top: 1px solid #000; 
+            padding-top: 15px; 
+        }
+        .page-break {
+            page-break-after: always;
+        }
+        </style>
+</head>
+<body>
+    <h1>Relatório Técnico-Jurídico Brurna Analytics</h1>
+    <h2>Análise Nacional Consolidada</h2>
+    
+    <div class="metric">
+        <strong>Período de Análise:</strong> 26/01/2026 08:11<br>
+        <strong>Estados Analisados:</strong> AC, AP, RR, TO, SE<br>
+        <strong>Total de Logs Processados:</strong> 253,299<br>
+        <strong>Total de Seções Analisadas:</strong> 629
+    </div>
+    
+    <h3>Distribuição por Unidade Federativa</h3>
+    <table>
+        <tr>
+            <th>UF</th>
+            <th>Total de Logs</th>
+            <th>Seções</th>
+            <th>% do Total</th>
+        </tr>
+
+        <tr>
+            <td><strong>Outros</strong></td>
+            <td>253,299</td>
+            <td>629</td>
+            <td>100.00%</td>
+        </tr>
+
+    </table>
+    
+    <h2>I. Sumário Executivo</h2>
+    <div class="metric">
+        <strong>Cobertura de Hipóteses:</strong> 99.8% (500 de 500)<br>
+        <strong>Anomalias Detectadas:</strong> 4<br>
+        <strong>Status Geral:</strong> CONFORME
+    </div>
+    
+    <div class="page-break"></div>
+    
+    <h2>II. Anomalias Detectadas - Detalhamento Completo</h2>
+    <p>As anomalias a seguir foram identificadas pelo sistema de análise automatizada. 
+    Para cada anomalia, são apresentados os dados completos de rastreabilidade, incluindo 
+    identificação de urna, seção eleitoral e trechos de logs originais.</p>
+
+    <div class="anomaly-detail">
+        <h3>Anomalia 1: H164 - FAIL (Anomaly)</h3>
+        
+        <p><strong>Descrição da Hipótese:</strong><br>
+        Não há perda de dados durante a troca de bateria (memória não volátil).</p>
+        
+        <p><strong>Observação Técnica:</strong><br>
+        Found 820 logs matching keywords: ['bateria', 'battery', 'carga']</p>
+        
+        <h4>Rastreabilidade e Evidências</h4>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:44 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Término]	4DC44B6F2B84C8E8
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:30 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Início]	F11784FECF79AA9D
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [25]	A024F49239B34CFF
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+    </div>
+
+    <div class="anomaly-detail">
+        <h3>Anomalia 2: H261 - FAIL (Anomaly)</h3>
+        
+        <p><strong>Descrição da Hipótese:</strong><br>
+        Não há logs compartilhando a mesma assinatura digital em seções diferentes.</p>
+        
+        <p><strong>Observação Técnica:</strong><br>
+        Found 14907 logs matching keywords: ['assinatura', 'sign', 'hash']</p>
+        
+        <h4>Rastreabilidade e Evidências</h4>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:44 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Término]	4DC44B6F2B84C8E8
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:30 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Início]	F11784FECF79AA9D
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [25]	A024F49239B34CFF
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+    </div>
+
+    <div class="anomaly-detail">
+        <h3>Anomalia 3: H300 - FAIL (Anomaly)</h3>
+        
+        <p><strong>Descrição da Hipótese:</strong><br>
+        Arquivos ocultos ou estranhos não existem na mídia de resultados.</p>
+        
+        <p><strong>Observação Técnica:</strong><br>
+        Found 164 logs matching keywords: ['arquivos']</p>
+        
+        <h4>Rastreabilidade e Evidências</h4>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:44 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Término]	4DC44B6F2B84C8E8
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:30 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Início]	F11784FECF79AA9D
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [25]	A024F49239B34CFF
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+    </div>
+
+    <div class="anomaly-detail">
+        <h3>Anomalia 4: H464 - FAIL (Anomaly Detected)</h3>
+        
+        <p><strong>Descrição da Hipótese:</strong><br>
+        Detecção de anomalias via Isolation Forest não aponta fraude sistêmica.</p>
+        
+        <p><strong>Observação Técnica:</strong><br>
+        Found 31 anomalies. Top: H8:Vol10454641:Err0, H10:Vol10324225:Err0, H11:Vol10212028:Err0</p>
+        
+        <h4>Rastreabilidade e Evidências</h4>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:44 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Término]	4DC44B6F2B84C8E8
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:12:30 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> RED	Gerando arquivo de resultado [.hash] + [Início]	F11784FECF79AA9D
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [26]	7069424E4343209E
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [25]	A024F49239B34CFF
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+        <div class="urna-info">
+            <strong>Urna/Seção:</strong> o00407-0604100100001.logjez | 
+            <strong>Timestamp:</strong> 2022-10-30 18:08:40 | 
+            <strong>Nível:</strong> INFO | 
+            <strong>Código:</strong> 67305985
+        </div>
+        <div class="log-excerpt">
+<strong>Mensagem:</strong> GAP	Verificação de assinatura - Etapa [24]	6C792F29DC2504E9
+
+<strong>Linha Original do Log:</strong>
+
+        </div>
+
+    </div>
+
+    
+    <div class="page-break"></div>
+    
+    <h2>III. Parecer Jurídico</h2>
+    <p><strong>Fundamentação Legal:</strong> Art. 5º da Resolução TSE 23.603/2019</p>
+    
+    <p style="text-align: justify;">
+    Com base na análise estatística realizada pelo sistema Brurna Analytics, 
+    conclui-se que os dados apresentam <strong>indícios</strong> de comportamento 
+    atípico em 4 hipóteses (0.8% do total).
+    </p>
+    
+    <p style="text-align: justify;">
+    Tais indícios, por si sós, não configuram prova material de irregularidade 
+    eleitoral, mas merecem aprofundamento mediante auditoria complementar, 
+    nos termos do art. 103 do Código Eleitoral.
+    </p>
+    
+    <p style="text-align: justify;">
+    Ressalta-se que a presunção de lisura do processo eleitoral permanece íntegra,
+    cabendo ao interessado o ônus de comprovar eventual irregularidade mediante
+    prova inequívoca, conforme jurisprudência consolidada do TSE.
+    </p>
+    
+    <h2>IV. Recomendações</h2>
+    <ol>
+        <li>Auditoria física das urnas identificadas com anomalias</li>
+        <li>Verificação de integridade de lacres e confronto entre BU impresso e digital</li>
+        <li>Análise forense aprofundada dos logs com timestamps ou padrões suspeitos</li>
+        <li>Perícia técnica complementar nas seções com desvios estatísticos significativos</li>
+        <li>Monitoramento contínuo e aprimoramento dos algoritmos de detecção</li>
+    </ol>
+    
+    <div class="footer">
+        <p><strong>AVISO LEGAL:</strong> Este relatório é gerado por sistema automatizado de análise estatística 
+        e não substitui perícia oficial da Justiça Eleitoral. Os pareceres jurídicos são fundamentados em 
+        legislação vigente e jurisprudência, mas não constituem decisão judicial. Uso restrito para fins de 
+        auditoria interna e transparência eleitoral.</p>
+        
+        <p><strong>Gerado em:</strong> 26/01/2026 às 08:11:46</p>
+        <p><strong>Sistema:</strong> Brurna Analytics v1.0 | <strong>Agente:</strong> TSE Justice</p>
+        <p><strong>Metodologia:</strong> Análise estatística via SQL + Machine Learning (Isolation Forest, sklearn 1.8.0)</p>
+    </div>
+</body>
+</html>

@@ -4,10 +4,28 @@ import plotly.express as px
 import os
 from sqlalchemy import create_engine, text
 import sys
+from datetime import datetime
+import locale
 
 # Add root to path for config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 from config import config
+
+# Configurar locale para PT-BR
+try:
+    locale.setlocale(locale.LC_ALL, 'pt_BR.UTF-8')
+except:
+    try:
+        locale.setlocale(locale.LC_ALL, 'Portuguese_Brazil.1252')
+    except:
+        pass  # Fallback se não conseguir configurar
+
+def format_number(num, decimals=0):
+    """Formata número no padrão PT-BR (1.234.567,89)"""
+    if decimals == 0:
+        return f"{num:,.0f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    else:
+        return f"{num:,.{decimals}f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
 st.set_page_config(page_title="Brurna Analytics", page_icon="🗳️", layout="wide")
 
@@ -58,20 +76,55 @@ st.title("🗳️ Brurna Analytics: Painel de Inteligência Eleitoral")
 st.subheader("⚡ Monitoramento de Ingestão (Tempo Real)")
 stats_df = get_ingestion_stats()
 if not stats_df.empty:
-    # Estimativa: 200 arquivos por estado × 5 estados = 1000 arquivos
-    # Média de ~400 linhas por arquivo = 400.000 linhas esperadas
+    # Calcular estimativa realista baseada em dados reais
     total_logs = stats_df['total'].sum()
-    expected_total = 400000
-    progress_pct = min(total_logs / expected_total, 1.0)
+    
+    # Consultar média real de logs por arquivo
+    engine = get_db()
+    with engine.connect() as conn:
+        total_files = conn.execute(text("SELECT COUNT(DISTINCT source_file) FROM log_eventos")).scalar()
+        avg_logs_per_file = total_logs / total_files if total_files > 0 else 400
+    
+    # Estimativa: 200 arquivos por estado × 5 estados = 1000 arquivos
+    expected_files = 1000
+    expected_total = int(avg_logs_per_file * expected_files)
+    
+    progress_pct = min(total_logs / expected_total, 1.0) if expected_total > 0 else 0
+    
+    # Debug: mostrar valores para diagnóstico
+    # st.write(f"DEBUG: total_logs={total_logs}, expected_total={expected_total}, avg={avg_logs_per_file}")
+    
+    import psutil
     
     col_prog1, col_prog2, col_prog3 = st.columns([3, 1, 2])
     with col_prog1:
-        st.progress(progress_pct, text=f"Progresso: {total_logs:,} / ~{expected_total:,} logs ({progress_pct*100:.1f}%)")
+        st.progress(progress_pct, text=f"Progresso: {format_number(int(total_logs))} / ~{format_number(int(expected_total))} logs ({format_number(progress_pct*100, 1)}%)")
     with col_prog2:
-        # Taxa de processamento (logs por minuto)
-        elapsed_minutes = 55  # Tempo decorrido desde início da ingestão (atualizar dinamicamente se possível)
-        rate_per_min = total_logs / elapsed_minutes if elapsed_minutes > 0 else 0
-        st.metric("Taxa", f"{rate_per_min:.0f} logs/min" if total_logs > 0 else "Calculando...")
+        # Calcular tempo decorrido real buscando processo ingest_logs.py
+        elapsed_minutes = 0
+        try:
+            for p in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
+                try:
+                    cmd = p.info['cmdline']
+                    if cmd and 'python' in p.info['name'] and any('ingest_logs.py' in c for c in cmd):
+                        create_time = datetime.fromtimestamp(p.info['create_time'])
+                        elapsed = datetime.now() - create_time
+                        elapsed_minutes = elapsed.total_seconds() / 60
+                        break
+                except:
+                    continue
+        except:
+            pass
+            
+        # Fallback se não encontrar processo (ex: finalizado ou erro)
+        if elapsed_minutes == 0:
+             # Fallback estimado (9h = 540min) se não conseguir detectar
+             elapsed_minutes = 540
+
+        # Garantir que total_logs é numérico
+        total_logs_num = int(total_logs) if total_logs else 0
+        rate_per_min = total_logs_num / elapsed_minutes if elapsed_minutes > 0 else 0
+        st.metric("Taxa", f"{format_number(int(rate_per_min))} logs/min" if rate_per_min > 0 else "Calculando...")
     with col_prog3:
         # Estimativa de conclusão
         if rate_per_min > 0:
@@ -82,11 +135,11 @@ if not stats_df.empty:
             if remaining_hours >= 24:
                 days = int(remaining_hours // 24)
                 hours = int(remaining_hours % 24)
-                eta_text = f"{days}d {hours}h ({remaining_hours:.1f}h total)"
+                eta_text = f"{days}d {hours}h ({format_number(remaining_hours, 1)}h total)"
             else:
                 hours = int(remaining_hours)
                 minutes = int((remaining_hours - hours) * 60)
-                eta_text = f"{hours}h {minutes}min ({remaining_hours:.1f}h total)"
+                eta_text = f"{hours}h {minutes}min ({format_number(remaining_hours, 1)}h total)"
             
             st.metric("⏱️ ETA", eta_text)
         else:
@@ -96,8 +149,8 @@ if not stats_df.empty:
     cols = st.columns(len(stats_df))
     for i, row in stats_df.iterrows():
         with cols[i]:
-            delta = f"+{row['total']}" if i == 0 else None
-            cols[i].metric(f"🗳️ {row['uf']}", f"{row['total']:,}", delta=delta)
+            delta = f"+{format_number(row['total'])}" if i == 0 else None
+            cols[i].metric(f"🗳️ {row['uf']}", format_number(row['total']), delta=delta)
 else:
     st.info("Conectando ao Banco de Dados...")
 
@@ -164,10 +217,10 @@ with tab1:
     pct = (covered / 500) * 100
     anomalies = len(df[df["Status"].str.contains("FAIL") | df["Status"].str.contains("Anomaly")])
     
-    col1.metric("Total Hipóteses", total)
-    col2.metric("Cobertura Atual", f"{pct:.1f}%")
-    col3.metric("Hipóteses Ativas", covered)
-    col4.metric("Anomalias Detectadas", anomalies, delta_color="inverse")
+    col1.metric("Total Hipóteses", format_number(total))
+    col2.metric("Cobertura Atual", f"{format_number(pct, 1)}%")
+    col3.metric("Hipóteses Ativas", format_number(covered))
+    col4.metric("Anomalias Detectadas", format_number(anomalies), delta_color="inverse")
     
     # Charts
     col_charts_1, col_charts_2 = st.columns(2)
@@ -191,10 +244,13 @@ with tab1:
             # Configurar eixo Y
             fig_temp.update_yaxes(title="Volume de Votos")
             
-            # Adicionar valores nos pontos
+            # Adicionar valores nos pontos (formato PT-BR)
+            # Converter valores para formato brasileiro antes de exibir
+            temp_df['vol_formatted'] = temp_df['vol'].apply(lambda x: format_number(x))
+            
             fig_temp.update_traces(
                 textposition='top center',
-                texttemplate='%{y:,.0f}',
+                text=temp_df['vol_formatted'],
                 mode='lines+markers+text',
                 line=dict(color='#0066cc', width=3),
                 marker=dict(size=8, color='#ff6600')
@@ -253,9 +309,20 @@ with tab2:
         'ID': 'count'
     }).reset_index()
     grupo_stats.columns = ['Grupo', 'Executadas', 'Total']
-    grupo_stats['Cobertura %'] = (grupo_stats['Executadas'] / grupo_stats['Total'] * 100).round(1)
     
-    st.dataframe(grupo_stats, use_container_width=True, hide_index=True)
+    # Calcular cobertura como número primeiro
+    grupo_stats['Cobertura_num'] = (grupo_stats['Executadas'] / grupo_stats['Total'] * 100)
+    
+    # Criar cópia para exibição com formatação PT-BR
+    grupo_stats_display = grupo_stats.copy()
+    grupo_stats_display['Executadas'] = grupo_stats['Executadas'].apply(lambda x: format_number(int(x)))
+    grupo_stats_display['Total'] = grupo_stats['Total'].apply(lambda x: format_number(int(x)))
+    grupo_stats_display['Cobertura %'] = grupo_stats['Cobertura_num'].apply(lambda x: f"{format_number(x, 1)}%")
+    
+    # Remover coluna auxiliar
+    grupo_stats_display = grupo_stats_display.drop('Cobertura_num', axis=1)
+    
+    st.dataframe(grupo_stats_display, use_container_width=True, hide_index=True)
     
     # Top 10 Anomalias
     st.subheader("⚠️ Top 10 Anomalias Detectadas")
