@@ -1,97 +1,130 @@
-# Brurna Analytics 🗳️ 🇧🇷
+# Brurna Analytics
 
-![Status](https://img.shields.io/badge/Status-Ativo-success?style=for-the-badge)
-![Python](https://img.shields.io/badge/Python-3.13-blue?style=for-the-badge)
-![Database](https://img.shields.io/badge/PostgreSQL-15-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
-![LGPD](https://img.shields.io/badge/LGPD-Conforme-brightgreen?style=for-the-badge)
+Sistema de análise forense de logs eleitorais do TSE com fundamentação jurídica automatizada.
 
-**Brurna Analytics** é uma plataforma de auditoria forense de alta performance para o sistema eleitoral brasileiro. O projeto visa fornecer transparência e ferramentas analíticas avançadas para o processamento de logs das Urnas Eletrônicas (`logd.dat`), permitindo a identificação de padrões, detecção de anomalias e cruzamento com resultados oficiais do TSE.
+## 📊 Visão Geral
 
----
+O Brurna Analytics é uma plataforma de auditoria eleitoral que processa logs de urnas eletrônicas, executa 500 hipóteses de análise (temporal, hardware, forense e cruzamento de dados) e gera relatórios técnico-jurídicos fundamentados.
 
-## 🎯 Objetivos do Projeto
+## 🎯 Funcionalidades
 
-- **Transparência Pública**: Democratizar o acesso e a compreensão dos logs das urnas eletrônicas.
-- **Auditoria Forense Automatizada**: Detectar automaticamente comportamentos inesperados ou falhas de integridade.
-- **Otimização de Grande Escala**: Processar TBs de dados brutos com redução drástica de volume para análise em hardware comum.
-- **Conformidade em Primeiro Lugar**: Garantir a total privacidade de dados sensíveis (CPFs e títulos) conforme a LGPD.
+- **Ingestão de Dados**: Processamento de arquivos `.logjez` (logs compactados de urnas)
+- **Motor Analítico**: 500 hipóteses automatizadas (99.8% de cobertura)
+- **Machine Learning**: Detecção de anomalias via Isolation Forest
+- **Dashboard Interativo**: Visualização em tempo real (Streamlit)
+- **Relatórios Forenses**: Geração automática com formatação ABNT A4
+- **Fundamentação Jurídica**: Agente TSE Justice com base legal completa
 
----
-
-## 🏗️ Arquitetura e Fluxo de Dados
-
-A estrutura do projeto segue um pipeline modular para garantir escalabilidade:
-
-![Estrutura Conceitual](docs/img/project_structure.jpg)
-
-### Componentes Principais:
-1.  **`main.py`**: O orquestrador central (CLI) para comandos de download, processamento e análise.
-2.  **`src/download`**: Motor paralelo de alta performance (25+ threads) para ingestão direta dos servidores do TSE.
-3.  **`src/parser`**: Núcleo de extração que lida com arquivos `.logjez` e normaliza os eventos brutos.
-4.  **`src/analytics`**: Suíte forense (Detecção de Outliers, Padrões, e Cruzamento TSE).
-5.  **`src/database`**: Camada de persistência otimizada (PostgreSQL + Parquet).
-
----
-
-## 🚀 Funcionalidades Chave
-
-*   **Motor de Agregação Inteligente**: Redução de **99.98%** no volume de dados através do reconhecimento de padrões de mensagens.
-*   **Pipeline V2 (High-Performance)**: Otimizado para processadores modernos (testado com 28-32 cores), reduzindo o tempo de processamento nacional de semanas para dias.
-*   **Detector de Anomalias Críticas**:
-    *   **Privacy Guard**: Varredura automática por CPFs e PII.
-    *   **Integrity Check**: Validação de encodings e assinaturas digitais.
-*   **Relatórios Comparativos**: Gráficos automáticos de densidade temporal e fluxo de votação por UF/Modelo de Urna.
-
----
-
-## 📊 Status Atual e Roadmap
-
-```mermaid
-gantt
-    title Cronograma de Evolução Brurna
-    dateFormat  YYYY-MM-DD
-    section Infra & Base
-    Redução de Dados (Agregação)   :done,    d1, 2026-01-20, 2026-01-22
-    Pipeline Paralelo V2           :done,    d2, 2026-01-23, 2026-01-24
-    section Pilotos (1º Turno)
-    Amapá (AP)                     :done,    p1, 2026-01-24, 1d
-    Roraima (RR)                   :done,    p2, 2026-01-24, 1d
-    Acre (AC)                      :active,  p3, 2026-01-24, 1d
-    section Escala & 2º Turno
-    Estados Médios (TO, SE, AL)    :         e1, 2026-01-25, 3d
-    Ingestão 2º Turno              :         e2, 2026-01-28, 4d
-    Dashboard de Inteligência      :         e3, 2026-02-01, 7d
-```
-
-### Progresso Detalhado
-
-| UF | Status | Urnas | Anomalias Críticas |
-| :--- | :---: | :---: | :---: |
-| **Amapá (AP)** | ![100%](https://img.shields.io/badge/100%25-brightgreen) | 1.740 | 0 |
-| **Roraima (RR)** | ![100%](https://img.shields.io/badge/100%25-brightgreen) | 1.268 | 0 |
-| **Acre (AC)** | ![Em Processamento](https://img.shields.io/badge/PROCESSANDO-blue) | 2.124 | - |
-| **Tocantins (TO)** | ![Aguardando](https://img.shields.io/badge/FILA-lightgrey) | ~4.000 | - |
-
----
-
-## 🛠️ Instalação Rápida
+## 🚀 Quick Start
 
 ```bash
-# Clone e Setup
-git clone https://github.com/MarcosJRcwb/brurna-analytics.git
-cd brurna-analytics
-python -m venv .venv
-# Ativar venv e instalar
-pip install -r requirements.txt
+# 1. Ativar ambiente virtual
+.venv\Scripts\activate
 
-# Executar Ingestão Turbo
-python main.py download --uf ac
+# 2. Executar ingestão de dados
+python src/data_ingestion/ingest_logs.py
+
+# 3. Executar análises
+python src/analytics/analytical_engine.py
+
+# 4. Iniciar dashboard
+streamlit run src/dashboard/app.py
+
+# 5. Gerar relatórios
+python src/reports/generator.py
 ```
+
+## 📁 Estrutura do Projeto
+
+```
+brurna-analytics/
+├── .agent/                    # Agentes e Skills
+│   ├── agents/
+│   │   └── tse-justice.md    # Agente de fundamentação jurídica
+│   └── skills/
+│       └── report-forense-TSE-generation/
+├── src/
+│   ├── analytics/            # Motor analítico
+│   │   ├── analytical_engine.py
+│   │   ├── g1_temporal.py
+│   │   └── g4_crosscheck.py
+│   ├── dashboard/            # Interface Streamlit
+│   │   └── app.py
+│   ├── data_ingestion/       # Processamento de logs
+│   │   └── ingest_logs.py
+│   └── reports/              # Geração de relatórios
+│       └── generator.py
+├── reports/                  # Relatórios gerados (HTML)
+└── analysis_results.csv      # Resultados das 500 hipóteses
+```
+
+## 🔬 Metodologia
+
+### Grupos de Hipóteses
+
+1. **G1 - Dinâmica Temporal (H001-H125)**: Padrões de votação ao longo do dia
+2. **G2 - Hardware/Operacional (H126-H250)**: Funcionamento de componentes
+3. **G3 - Forense/Segurança (H251-H375)**: Integridade e assinaturas
+4. **G4 - Cruzamento de Dados (H376-H500)**: Machine Learning e correlações
+
+### Tecnologias
+
+- **Backend**: Python 3.11, SQLAlchemy, Pandas
+- **Banco de Dados**: PostgreSQL
+- **Machine Learning**: scikit-learn 1.8.0 (Isolation Forest)
+- **Frontend**: Streamlit, Plotly
+- **Relatórios**: HTML com CSS ABNT A4
+
+## 📄 Relatórios
+
+Os relatórios são gerados em `reports/` com:
+- Formatação ABNT A4 (margens 3cm/2cm/2cm/3cm)
+- Detalhamento completo de anomalias
+- Rastreabilidade por urna/seção
+- Trechos de logs originais
+- Fundamentação jurídica (Res. TSE 23.603/2019)
+
+## 🏛️ Agente TSE Justice
+
+Ministro/Desembargador virtual com:
+- Formação: USP, FGV, PUC-SP, Mackenzie, UNICAMP
+- Especialização: Direito Eleitoral + Perícia Forense Digital
+- 20 casos de uso documentados
+- Linguagem técnico-jurídica rigorosa
+
+## 📊 Status Atual
+
+- ✅ **Cobertura**: 99.8% (499/500 hipóteses)
+- ✅ **Estados**: AC, AP, RR, TO, SE
+- ✅ **Logs Processados**: ~98.000+
+- ✅ **Dashboard**: http://localhost:8501
+
+## 🔐 Segurança e Compliance
+
+- ✅ Sigilo do voto preservado (apenas dados agregados)
+- ✅ Análises estatísticas como indícios (não provas definitivas)
+- ✅ Presunção de lisura do processo eleitoral
+- ✅ Conformidade com legislação eleitoral brasileira
+
+## 📚 Documentação
+
+- [Agente TSE Justice](.agent/agents/tse-justice.md)
+- [Skill de Relatórios](.agent/skills/report-forense-TSE-generation/SKILL.md)
+- [Task List](../.gemini/antigravity/brain/823a5e8b-dcb0-4e8e-84b0-5afb5d3b200b/task.md)
+
+## 🤝 Contribuindo
+
+Este é um projeto de auditoria eleitoral. Contribuições devem seguir:
+1. Rigor técnico-científico
+2. Fundamentação jurídica
+3. Transparência e rastreabilidade
+4. Respeito ao sigilo do voto
+
+## 📝 Licença
+
+Uso restrito para fins de auditoria interna e transparência eleitoral.
 
 ---
 
-## 📄 Licença e Ética
-
-Este projeto é destinado a fins de transparência e pesquisa. Licenciado sob **MIT**.
-Todos os dados processados são públicos, fornecidos pelo TSE através do Portal de Dados Abertos.
+**Desenvolvido com**: Python, PostgreSQL, Streamlit, scikit-learn
+**Fundamentação**: Código Eleitoral, CF/88, Resoluções TSE
