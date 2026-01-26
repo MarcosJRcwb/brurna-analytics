@@ -147,19 +147,7 @@ def main():
             file_count += 1
             
     print(f"✅ Ingestion Complete. Total: {total_lines} lines from {file_count} files across {target_states}.")
-    
-    # Process limited batch for safety first (e.g. 50 files) to test speed
-    # Or full run if confident. Let's do 50 for this interaction to show progress.
-    # The user authorized "validation", so I should do enough to light up the dashboard.
-    limit = 50
-    for i, file_path in enumerate(files_to_process[:limit]):
-        print(f"[{i+1}/{limit}] Processing {os.path.basename(file_path)}")
-        count = process_file(file_path, engine)
-        total_lines += count
-        file_count += 1
-        
-    print(f"Make sure to run again without limit for full ingestion.")
-    print(f"Total Ingested: {total_lines} lines from {file_count} files.")
 
 if __name__ == "__main__":
     main()
+
