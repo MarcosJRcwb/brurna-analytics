@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, text
 import sys
 from datetime import datetime
 import locale
+from pathlib import Path
 
 # Add root to path for config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
