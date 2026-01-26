@@ -29,6 +29,16 @@ def format_number(num, decimals=0):
 
 st.set_page_config(page_title="Brurna Analytics", page_icon="🗳️", layout="wide")
 
+# Auto-refresh a cada 5 minutos (300 segundos)
+import time
+if 'last_refresh' not in st.session_state:
+    st.session_state.last_refresh = time.time()
+
+elapsed = time.time() - st.session_state.last_refresh
+if elapsed > 300:  # 5 minutos
+    st.session_state.last_refresh = time.time()
+    st.rerun()
+
 # --- SQL CONNECTION ---
 @st.cache_resource
 def get_db():
@@ -151,6 +161,24 @@ if not stats_df.empty:
         with cols[i]:
             delta = f"+{format_number(row['total'])}" if i == 0 else None
             cols[i].metric(f"🗳️ {row['uf']}", format_number(row['total']), delta=delta)
+    
+    # Monitoramento de Operações em Background
+    st.subheader("🔄 Operações em Andamento")
+    col_ops1, col_ops2 = st.columns(2)
+    
+    with col_ops1:
+        st.caption("**Última atualização:** " + datetime.now().strftime("%H:%M:%S"))
+        if total_logs >= expected_total:
+            st.success("✅ Ingestão completa!")
+        else:
+            remaining = expected_total - total_logs
+            st.info(f"⏳ Processando... Faltam ~{format_number(int(remaining))} logs")
+    
+    with col_ops2:
+        st.caption("**Auto-refresh:** A cada 5 minutos")
+        if st.button("🔄 Forçar Atualização Agora"):
+            st.rerun()
+
 else:
     st.info("Conectando ao Banco de Dados...")
 

@@ -14,6 +14,8 @@ O Brurna Analytics é uma plataforma de auditoria eleitoral que processa logs de
 - **Dashboard Interativo**: Visualização em tempo real (Streamlit)
 - **Relatórios Forenses**: Geração automática com formatação ABNT A4
 - **Fundamentação Jurídica**: Agente TSE Justice com base legal completa
+- **Validação Criptográfica**: Hash chain validation (H501)
+- **Execução Unitária**: Teste individual de hipóteses
 
 ## 🚀 Quick Start
 
@@ -24,13 +26,17 @@ O Brurna Analytics é uma plataforma de auditoria eleitoral que processa logs de
 # 2. Executar ingestão de dados
 python src/data_ingestion/ingest_logs.py
 
-# 3. Executar análises
+# 3. Executar análises (todas as 500 hipóteses)
 python src/analytics/analytical_engine.py
 
-# 4. Iniciar dashboard
+# 4. Executar hipótese específica
+python run_hypothesis.py H001
+python run_hypothesis.py H464 H501  # Múltiplas hipóteses
+
+# 5. Iniciar dashboard
 streamlit run src/dashboard/app.py
 
-# 5. Gerar relatórios
+# 6. Gerar relatórios
 python src/reports/generator.py
 ```
 
@@ -47,14 +53,20 @@ brurna-analytics/
 │   ├── analytics/            # Motor analítico
 │   │   ├── analytical_engine.py
 │   │   ├── g1_temporal.py
-│   │   └── g4_crosscheck.py
+│   │   ├── g4_crosscheck.py
+│   │   └── h501_hash_chain.py  # Validação criptográfica
 │   ├── dashboard/            # Interface Streamlit
 │   │   └── app.py
 │   ├── data_ingestion/       # Processamento de logs
 │   │   └── ingest_logs.py
 │   └── reports/              # Geração de relatórios
 │       └── generator.py
-├── reports/                  # Relatórios gerados (HTML)
+├── reports/                  # Relatórios gerados
+│   ├── html/                # Relatórios HTML
+│   ├── pdf/                 # Relatórios PDF (futuro)
+│   └── por_hipotese/        # Relatórios individuais
+├── temp/                     # Arquivos temporários
+├── run_hypothesis.py         # Executor unitário
 └── analysis_results.csv      # Resultados das 500 hipóteses
 ```
 
@@ -66,6 +78,7 @@ brurna-analytics/
 2. **G2 - Hardware/Operacional (H126-H250)**: Funcionamento de componentes
 3. **G3 - Forense/Segurança (H251-H375)**: Integridade e assinaturas
 4. **G4 - Cruzamento de Dados (H376-H500)**: Machine Learning e correlações
+5. **H501 - Hash Chain**: Validação de integridade criptográfica (blockchain-like)
 
 ### Tecnologias
 
@@ -84,6 +97,14 @@ Os relatórios são gerados em `reports/` com:
 - Trechos de logs originais
 - Fundamentação jurídica (Res. TSE 23.603/2019)
 
+### Estrutura Hierárquica
+
+1. **Nacional**: Consolidado de todos os estados
+2. **Regional**: Norte, Nordeste, etc.
+3. **Por UF**: Análise estadual
+4. **Por Município**: Detalhamento municipal
+5. **Por Zona Eleitoral**: Granularidade máxima
+
 ## 🏛️ Agente TSE Justice
 
 Ministro/Desembargador virtual com:
@@ -96,8 +117,9 @@ Ministro/Desembargador virtual com:
 
 - ✅ **Cobertura**: 99.8% (499/500 hipóteses)
 - ✅ **Estados**: AC, AP, RR, TO, SE
-- ✅ **Logs Processados**: ~98.000+
+- ✅ **Logs Processados**: ~423.000
 - ✅ **Dashboard**: http://localhost:8501
+- ✅ **Auto-refresh**: A cada 5 minutos
 
 ## 🔐 Segurança e Compliance
 
@@ -106,11 +128,24 @@ Ministro/Desembargador virtual com:
 - ✅ Presunção de lisura do processo eleitoral
 - ✅ Conformidade com legislação eleitoral brasileira
 
+## 🛠️ Execução Unitária de Hipóteses
+
+```bash
+# Executar hipótese específica
+python run_hypothesis.py H001
+
+# Executar múltiplas hipóteses
+python run_hypothesis.py H001 H464 H501
+
+# Relatórios individuais salvos em: reports/por_hipotese/
+```
+
 ## 📚 Documentação
 
 - [Agente TSE Justice](.agent/agents/tse-justice.md)
 - [Skill de Relatórios](.agent/skills/report-forense-TSE-generation/SKILL.md)
-- [Task List](../.gemini/antigravity/brain/823a5e8b-dcb0-4e8e-84b0-5afb5d3b200b/task.md)
+- [Plano de 500 Hipóteses](docs/plano_analise_500_final.md)
+- [Relatório Piloto](reports/relatorio_piloto_completo.md)
 
 ## 🤝 Contribuindo
 
@@ -126,5 +161,6 @@ Uso restrito para fins de auditoria interna e transparência eleitoral.
 
 ---
 
-**Desenvolvido com**: Python, PostgreSQL, Streamlit, scikit-learn
-**Fundamentação**: Código Eleitoral, CF/88, Resoluções TSE
+**Desenvolvido com**: Python, PostgreSQL, Streamlit, scikit-learn  
+**Fundamentação**: Código Eleitoral, CF/88, Resoluções TSE  
+**Versão**: 1.0 (Piloto)
