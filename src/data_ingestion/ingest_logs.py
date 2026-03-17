@@ -109,7 +109,8 @@ def process_file(filepath, engine):
 
 def main():
     base_dir = r"C:\Users\marco\Downloads\TSE\data\raw_logs"
-    target_states = ['ac', 'ap', 'rr', 'to', 'se'] # The 5 Pilot States
+    # target_states = ['ac', 'ap', 'rr', 'to', 'se'] # The 5 Pilot States
+    target_states = ['pr', 'sc', 'rs'] # South Region Expansion
     engine = setup_db()
     
     total_lines = 0
@@ -139,8 +140,9 @@ def main():
         # User authorized "Unlimted" implies we should remove the break, but I'll set a high limit 
         # like 200 to prevent locking the machine for 5 hours right now.
         
-        limit = 200 
-        for i, file_path in enumerate(files_to_process[:limit]):
+        # limit = 200  # DISABLED FOR SOUTH REGION EXPANSION
+        # for i, file_path in enumerate(files_to_process[:limit]):
+        for i, file_path in enumerate(files_to_process):
             print(f"[{state.upper()} {i+1}/{len(files_to_process[:limit])}] Processing {os.path.basename(file_path)}")
             count = process_file(file_path, engine)
             total_lines += count

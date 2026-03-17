@@ -108,8 +108,6 @@ def get_ingestion_stats():
     """Query live row counts per state based on source_file path/name."""
     try:
         engine = get_current_engine()
-        # heuristic: filename usually starts with state or we assume folder structure
-        # actually log_eventos has source_file which is full path.
         query = text("""
         SELECT 
             CASE 
@@ -131,6 +129,62 @@ def get_ingestion_stats():
     except:
         return pd.DataFrame()
 
+@st.cache_data(ttl=60)
+def get_dual_sync_status():
+    """Fetch counts from both Local and Remote DB for comparative Sync Status."""
+    ufs_target = ['SE', 'RR', 'TO', 'AC', 'AP']
+    
+    def fetch_counts(conn_str):
+        try:
+            eng = create_engine(conn_str)
+            q = text("""
+                SELECT 
+                    CASE 
+                        WHEN source_file LIKE '%/ac/%' OR source_file LIKE '%\\ac\\%' THEN 'AC'
+                        WHEN source_file LIKE '%/ap/%' OR source_file LIKE '%\\ap\\%' THEN 'AP'
+                        WHEN source_file LIKE '%/rr/%' OR source_file LIKE '%\\rr\\%' THEN 'RR'
+                        WHEN source_file LIKE '%/to/%' OR source_file LIKE '%\\to\\%' THEN 'TO'
+                        WHEN source_file LIKE '%/se/%' OR source_file LIKE '%\\se\\%' THEN 'SE'
+                        ELSE 'Outros'
+                    END as uf,
+                    COUNT(*) as total
+                FROM log_eventos
+                GROUP BY 1
+            """)
+            with eng.connect() as conn:
+                df = pd.read_sql(q, conn)
+                # Ensure all targets are present
+                df = df[df['uf'].isin(ufs_target)]
+                # Map to dictionary {uf: total}
+                return dict(zip(df['uf'], df['total']))
+        except:
+            return {uf: 0 for uf in ufs_target}
+
+    local_counts = fetch_counts(config.LOCAL_POSTGRES_CONN)
+    remote_counts = fetch_counts(config.REMOTE_POSTGRES_CONN)
+    
+    # Expected approx file counts per state from previous analysis
+    expected = {'SE': 5104, 'RR': 1182, 'TO': 3824, 'AC': 1587, 'AP': 1206}
+    
+    rows = []
+    for uf in ufs_target:
+        loc = local_counts.get(uf, 0)
+        rem = remote_counts.get(uf, 0)
+        exp = expected.get(uf, 1) # avoid div by zero
+        loc_pct = (loc / exp) * 100 if loc <= exp else 100
+        sync_pct = (rem / loc) * 100 if loc > 0 else 0
+        
+        rows.append({
+            "UF": uf,
+            "Alvo Estimado": format_number(exp),
+            "Local (Processado)": format_number(loc),
+            "Ingestão Local %": f"{loc_pct:.1f}%",
+            "Remoto (Sincronizado)": format_number(rem),
+            "Sincronismo Remoto %": f"{sync_pct:.1f}%"
+        })
+    return pd.DataFrame(rows)
+
+
 def get_temporal_data():
     try:
         engine = get_current_engine()
@@ -143,10 +197,13 @@ def get_temporal_data():
 st.title("🗳️ Brurna Analytics: Painel de Inteligência Eleitoral")
 
 # --- INGESTION STATUS (LIVE) ---
-# Monitoramento centralizado na aba "Monitor de Execução"
-    
+st.subheader("🔄 Status do Banco: Sincronismo Nuclear")
+sync_df = get_dual_sync_status()
+st.dataframe(sync_df, use_container_width=True, hide_index=True)
+st.caption("A tabela acima monitora os logs brutos nos dois ambientes (Ryzen Local vs AWS/Remoto).")
+
 # Monitoramento de Operações em Background
-st.subheader("🔄 Operações em Andamento")
+st.subheader("⚙️ Monitor de Background")
 col_ops1, col_ops2 = st.columns(2)
 
 with col_ops1:

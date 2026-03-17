@@ -23,6 +23,8 @@ class ProjectConfig:
     # Database
     USE_POSTGRES: bool = True
     POSTGRES_CONN: str = os.getenv("DATABASE_URL", "postgresql://user:pass@localhost:5432/db")
+    REMOTE_POSTGRES_CONN: str = os.getenv("REMOTE_DATABASE_URL", POSTGRES_CONN)
+    LOCAL_POSTGRES_CONN: str = os.getenv("LOCAL_DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/brurna_db")
 
     DUCKDB_PATH: Path = PROCESSED_DIR / "cache.duckdb"
     

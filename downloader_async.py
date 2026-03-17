@@ -5,6 +5,7 @@ import aiofiles
 from pathlib import Path
 from typing import List, Dict
 import sys
+from datetime import datetime
 
 # Adicionar path para importar config
 sys.path.append(str(Path(__file__).parent.parent.parent))
@@ -37,6 +38,25 @@ class AsyncTSEDownloader:
 
                     pbar.update(1)
                     pbar.set_description(f"✅ {dest_file.name[:30]}...")
+                    
+                    # Report Status for Dashboard
+                    try:
+                        import json
+                        # Adjust total if we found more files than estimated
+                        current_total = max(pbar.total, pbar.n)
+                        status = {
+                            "activity": "download",
+                            "file": dest_file.name,
+                            "progress": pbar.n,
+                            "total": current_total,
+                            "percentage": (pbar.n / current_total * 100) if current_total else 0,
+                            "timestamp": datetime.now().isoformat()
+                        }
+                        with open("download_status.json", "w") as f:
+                            json.dump(status, f)
+                    except:
+                        pass
+                        
                     return True
                 else:
                     pbar.set_description(f"❌ HTTP {response.status}: {dest_file.name[:30]}...")
