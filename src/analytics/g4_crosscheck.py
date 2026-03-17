@@ -23,13 +23,12 @@ class G4CrossChecker:
         GROUP BY 1, 2, 3
         """)
         
-        # 2. Get Log Metrics (Errors) - We need to aggregate log_eventos by time window
-        # Approximate join via Hour
+        # 2. Get Log Metrics (Errors) - We aggregate temporal_metrics instead of raw logs
         q_logs = text("""
-        SELECT date(timestamp) as data, extract(hour from timestamp) as hora, 
-               count(*) as log_count,
-               sum(case when level in ('ERROR', 'FATAL') then 1 else 0 end) as error_count
-        FROM log_eventos
+        SELECT data, hora, 
+               sum(quantidade) as log_count,
+               sum(case when severidade in ('ERROR', 'FATAL', 'CRITICAL') then quantidade else 0 end) as error_count
+        FROM temporal_metrics
         GROUP BY 1, 2
         """)
 

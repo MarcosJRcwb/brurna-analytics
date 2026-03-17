@@ -22,14 +22,15 @@ class TemporalAnalyzer:
         """Cache basic log stats."""
         if "logs" in self.cache: return self.cache["logs"]
         
-        # Lightweight summary
+        # Lightweight summary mapped to aggregated tables
         query = text("""
         SELECT 
-            MIN(timestamp) as start_time, 
-            MAX(timestamp) as end_time, 
-            COUNT(*) as total,
-            SUM(CASE WHEN level='ERROR' THEN 1 ELSE 0 END) as errors
-        FROM log_eventos
+            MIN(periodo_inicio) as start_time, 
+            MAX(periodo_fim) as end_time, 
+            COALESCE(SUM(total_eventos), 0) as total,
+            (SELECT COALESCE(SUM(ocorrencias), 0) FROM log_patterns WHERE severidade IN ('ERROR', 'FATAL', 'CRITICAL')) +
+            (SELECT COUNT(*) FROM log_exceptions) as errors
+        FROM section_metadata
         """)
         with self.engine.connect() as conn:
             row = conn.execute(query).fetchone()
