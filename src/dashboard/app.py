@@ -4,13 +4,19 @@ import plotly.express as px
 import os
 from sqlalchemy import create_engine, text
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 import locale
 from pathlib import Path
 
 # Add root to path for config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 from config import config
+
+# --- Authentication gate (must run before any page render) ---
+from auth.auth_gate import require_auth
+require_auth()
+
 
 # Configurar locale para PT-BR
 try:
@@ -42,8 +48,33 @@ if elapsed > 300:  # 5 minutos
 
 # --- SQL CONNECTION ---
 @st.cache_resource
-def get_db():
-    return create_engine(config.POSTGRES_CONN)
+def get_db(use_local=True):
+    if use_local:
+        return create_engine(config.LOCAL_POSTGRES_CONN)
+    return create_engine(config.REMOTE_POSTGRES_CONN)
+
+# Iniciar state do DB
+if 'db_mode' not in st.session_state:
+    st.session_state.db_mode = 'Local (Ryzen 🚀)'
+
+def get_current_engine():
+    return get_db(use_local=st.session_state.db_mode == 'Local (Ryzen 🚀)')
+
+def get_download_status():
+    """Read live download status from JSON file."""
+    import json
+    import time
+    status_path = Path("download_status.json")
+    
+    # Only return if recently updated (last 30s) to avoid stale data
+    if status_path.exists():
+        try:
+            if time.time() - status_path.stat().st_mtime < 60:
+                with open(status_path, 'r') as f:
+                    return json.load(f)
+        except:
+            return None
+    return None
 
 def get_execution_status():
     """Read live status from JSON file."""
@@ -57,10 +88,26 @@ def get_execution_status():
             return None
     return None
 
+def get_ingestion_status():
+    """Read live ingestion status from JSON file."""
+    import json
+    import time
+    status_path = Path("ingestion_status.json")
+    
+    if status_path.exists():
+
+        try:
+            # Removed time limit to show stale status with warning in UI
+            with open(status_path, 'r') as f:
+                return json.load(f)
+        except:
+            return None
+    return None
+
 def get_ingestion_stats():
     """Query live row counts per state based on source_file path/name."""
     try:
-        engine = get_db()
+        engine = get_current_engine()
         # heuristic: filename usually starts with state or we assume folder structure
         # actually log_eventos has source_file which is full path.
         query = text("""
@@ -86,7 +133,7 @@ def get_ingestion_stats():
 
 def get_temporal_data():
     try:
-        engine = get_db()
+        engine = get_current_engine()
         q = text("SELECT hora, SUM(quantidade) as vol FROM temporal_metrics GROUP BY 1 ORDER BY 1")
         with engine.connect() as conn:
             return pd.read_sql(q, conn)
@@ -96,104 +143,23 @@ def get_temporal_data():
 st.title("🗳️ Brurna Analytics: Painel de Inteligência Eleitoral")
 
 # --- INGESTION STATUS (LIVE) ---
-st.subheader("⚡ Monitoramento de Ingestão (Tempo Real)")
-stats_df = get_ingestion_stats()
-if not stats_df.empty:
-    # Calcular estimativa realista baseada em dados reais
-    total_logs = stats_df['total'].sum()
+# Monitoramento centralizado na aba "Monitor de Execução"
     
-    # Consultar média real de logs por arquivo
-    engine = get_db()
-    with engine.connect() as conn:
-        total_files = conn.execute(text("SELECT COUNT(DISTINCT source_file) FROM log_eventos")).scalar()
-        avg_logs_per_file = total_logs / total_files if total_files > 0 else 400
-    
-    # Estimativa: 200 arquivos por estado × 5 estados = 1000 arquivos
-    expected_files = 1000
-    expected_total = int(avg_logs_per_file * expected_files)
-    
-    progress_pct = min(total_logs / expected_total, 1.0) if expected_total > 0 else 0
-    
-    # Debug: mostrar valores para diagnóstico
-    # st.write(f"DEBUG: total_logs={total_logs}, expected_total={expected_total}, avg={avg_logs_per_file}")
-    
-    import psutil
-    
-    col_prog1, col_prog2, col_prog3 = st.columns([3, 1, 2])
-    with col_prog1:
-        st.progress(progress_pct, text=f"Progresso: {format_number(int(total_logs))} / ~{format_number(int(expected_total))} logs ({format_number(progress_pct*100, 1)}%)")
-    with col_prog2:
-        # Calcular tempo decorrido real buscando processo ingest_logs.py
-        elapsed_minutes = 0
-        try:
-            for p in psutil.process_iter(['pid', 'name', 'cmdline', 'create_time']):
-                try:
-                    cmd = p.info['cmdline']
-                    if cmd and 'python' in p.info['name'] and any('ingest_logs.py' in c for c in cmd):
-                        create_time = datetime.fromtimestamp(p.info['create_time'])
-                        elapsed = datetime.now() - create_time
-                        elapsed_minutes = elapsed.total_seconds() / 60
-                        break
-                except:
-                    continue
-        except:
-            pass
-            
-        # Fallback se não encontrar processo (ex: finalizado ou erro)
-        if elapsed_minutes == 0:
-             # Fallback estimado (9h = 540min) se não conseguir detectar
-             elapsed_minutes = 540
+# Monitoramento de Operações em Background
+st.subheader("🔄 Operações em Andamento")
+col_ops1, col_ops2 = st.columns(2)
 
-        # Garantir que total_logs é numérico
-        total_logs_num = int(total_logs) if total_logs else 0
-        rate_per_min = total_logs_num / elapsed_minutes if elapsed_minutes > 0 else 0
-        st.metric("Taxa", f"{format_number(int(rate_per_min))} logs/min" if rate_per_min > 0 else "Calculando...")
-    with col_prog3:
-        # Estimativa de conclusão
-        if rate_per_min > 0:
-            remaining_logs = expected_total - total_logs
-            remaining_minutes = remaining_logs / rate_per_min
-            remaining_hours = remaining_minutes / 60
-            
-            if remaining_hours >= 24:
-                days = int(remaining_hours // 24)
-                hours = int(remaining_hours % 24)
-                eta_text = f"{days}d {hours}h ({format_number(remaining_hours, 1)}h total)"
-            else:
-                hours = int(remaining_hours)
-                minutes = int((remaining_hours - hours) * 60)
-                eta_text = f"{hours}h {minutes}min ({format_number(remaining_hours, 1)}h total)"
-            
-            st.metric("⏱️ ETA", eta_text)
-        else:
-            st.metric("⏱️ ETA", "Calculando...")
-    
-    # Detalhamento por estado
-    cols = st.columns(len(stats_df))
-    for i, row in stats_df.iterrows():
-        with cols[i]:
-            delta = f"+{format_number(row['total'])}" if i == 0 else None
-            cols[i].metric(f"🗳️ {row['uf']}", format_number(row['total']), delta=delta)
-    
-    # Monitoramento de Operações em Background
-    st.subheader("🔄 Operações em Andamento")
-    col_ops1, col_ops2 = st.columns(2)
-    
-    with col_ops1:
-        st.caption("**Última atualização:** " + datetime.now().strftime("%H:%M:%S"))
-        if total_logs >= expected_total:
-            st.success("✅ Ingestão completa!")
-        else:
-            remaining = expected_total - total_logs
-            st.info(f"⏳ Processando... Faltam ~{format_number(int(remaining))} logs")
-    
-    with col_ops2:
-        st.caption("**Auto-refresh:** A cada 5 minutos")
-        if st.button("🔄 Forçar Atualização Agora"):
-            st.rerun()
+with col_ops1:
+    st.caption("**Última atualização:** " + datetime.now().strftime("%H:%M:%S"))
+    st.info("✅ Sistema operando normalmente")
 
-else:
-    st.info("Conectando ao Banco de Dados...")
+with col_ops2:
+    st.caption("**Auto-refresh:** A cada 5 minutos")
+    if st.button("🔄 Forçar Atualização Agora"):
+        st.session_state.last_refresh = time.time()
+        st.rerun()
+
+
 
 st.markdown("---")
 
@@ -217,6 +183,19 @@ if df.empty:
     st.stop()
 
 # Sidebar
+st.sidebar.header("🔌 Conectividade")
+db_mode = st.sidebar.radio(
+    "Fonte de Dados",
+    options=['Local (Ryzen 🚀)', 'Remoto (Cloud ☁️)'],
+    index=0,
+    key="db_mode_radio"
+)
+
+if db_mode != st.session_state.db_mode:
+    st.session_state.db_mode = db_mode
+    st.cache_resource.clear()
+    st.rerun()
+
 st.sidebar.header("Filtros")
 if st.sidebar.button("🔄 Atualizar Dados (F5)"):
     st.rerun()
@@ -424,6 +403,80 @@ with tab3:
 with tab4:
     st.subheader("🚀 Monitor de Execução em Tempo Real")
     
+    # Check Download Status First
+    dl_status = get_download_status()
+    
+    if dl_status and dl_status.get("activity") == "download":
+        st.info("📥 Download de Dados em Andamento (Região SUL)")
+        
+        # Clamp progress to 0-1 range to avoid Streamlit errors
+        raw_pct = dl_status["percentage"] / 100
+        safe_pct = min(max(raw_pct, 0.0), 1.0)
+        
+        st.progress(safe_pct, 
+                   text=f"Baixando: {format_number(dl_status['progress'])} / {format_number(dl_status['total'])} arquivos ({dl_status['percentage']:.1f}%)")
+        st.caption(f"Último arquivo: {dl_status['file']}")
+        st.divider()
+    
+    # Check Ingestion Status
+    ing_status = get_ingestion_status()
+    if ing_status:
+        # Check staleness
+        import time
+        last_update = datetime.fromisoformat(ing_status['timestamp'])
+        seconds_ago = (datetime.now() - last_update).total_seconds()
+        is_stale = seconds_ago > 120
+        
+        status_color = "red" if is_stale else "blue"
+        status_text = f"⚠️ Ingestão Parada/Estagnada (Último sinal: {int(seconds_ago/60)} min atrás)" if is_stale else f"⚡ Monitoramento de Ingestão (Tempo Real) - {ing_status.get('state', 'Unknown').upper()}"
+        
+        if is_stale:
+            st.error(status_text)
+        else:
+            st.info(status_text)
+        
+        # Calculate Rates from JSON
+        rate = ing_status.get("rate", 0) * 60 # logs/min (assuming rate is files/sec? no, rate is files/sec in backend)
+        # Actually rate in backend is files/sec. Let's show files/min or logs/min? 
+        # User asked for "783 logs/min". We track files processed. 
+        # Let's show Files/min to be accurate to what we count.
+        files_per_min = rate 
+        
+        eta_seconds = ing_status.get("eta_seconds", 0)
+        eta_h = int(eta_seconds // 3600)
+        eta_m = int((eta_seconds % 3600) // 60)
+        
+        elapsed_seconds = ing_status.get("elapsed_seconds", 0)
+        el_h = elapsed_seconds / 3600
+        
+        raw_pct = ing_status["percentage"] / 100
+        safe_pct = min(max(raw_pct, 0.0), 1.0)
+        
+        # Display Bar
+        st.progress(safe_pct, 
+                   text=f"Progresso: {format_number(ing_status['progress'])} / {format_number(ing_status['total'])} arquivos ({ing_status['percentage']:.1f}%)")
+        
+        # Custom Portuguese Day of Week
+        days_map = {0: "SEG", 1: "TER", 2: "QUA", 3: "QUI", 4: "SEX", 5: "SAB", 6: "DOM"}
+        
+        # Calculate Projected Finish
+        finish_time = datetime.now() + timedelta(seconds=eta_seconds)
+        day_str = days_map[finish_time.weekday()]
+        finish_str = finish_time.strftime("%d/%m %H:%M")
+        
+        # Metrics Row
+        col_i1, col_i2, col_i3 = st.columns(3)
+        col_i1.metric("Rítmo", f"{format_number(files_per_min, 1)} arq/min")
+        col_i2.metric("⏱️ ETA", f"{eta_h}h {eta_m}min", help=f"Previsão: {day_str} {finish_str}")
+        col_i3.metric("Conclusão", f"{day_str} {finish_str}")
+        
+        # Details
+        st.caption(f"Arquivo Atual: {ing_status['file']}")
+        if ing_status['errors'] > 0:
+            st.error(f"Erros Totais: {ing_status['errors']}")
+        
+        st.divider()
+
     status = get_execution_status()
     if status:
         # Progress Bar

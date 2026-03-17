@@ -1,4 +1,4 @@
-﻿# main.py
+# main.py
 import typer
 from typing import Optional
 import sys
@@ -10,6 +10,76 @@ src_path = Path(__file__).parent / "src"
 sys.path.append(str(src_path))
 
 app = typer.Typer(help="BRURNA Analytics - Processador de Logs do TSE")
+
+# ── Auth sub-commands ──────────────────────────────────────────────────────────
+auth_app = typer.Typer(help="Gerenciar autenticação JWT")
+app.add_typer(auth_app, name="auth")
+
+
+@auth_app.command("create-user")
+def auth_create_user(
+    username: str = typer.Option(..., "--username", "-u", help="Nome do usuário"),
+    password: str = typer.Option(..., "--password", "-p", prompt=True, hide_input=True, help="Senha do usuário"),
+):
+    """Cria um novo usuário no banco de dados."""
+    from auth.user_store import create_user
+    try:
+        user_id = create_user(username, password)
+        typer.echo(f"✅ Usuário '{username}' criado com id={user_id}")
+    except Exception as e:
+        typer.echo(f"❌ Erro ao criar usuário: {e}", err=True)
+        raise typer.Exit(code=1)
+
+
+@auth_app.command("login")
+def auth_login(
+    username: str = typer.Option(..., "--username", "-u", help="Nome do usuário"),
+    password: str = typer.Option(..., "--password", "-p", prompt=True, hide_input=True, help="Senha do usuário"),
+):
+    """Autentica e exibe os tokens JWT (access + refresh)."""
+    from auth.user_store import authenticate_user, save_refresh_token
+    from auth.jwt_utils import create_access_token, create_refresh_token
+
+    user_id = authenticate_user(username, password)
+    if user_id is None:
+        typer.echo("❌ Credenciais inválidas.", err=True)
+        raise typer.Exit(code=1)
+
+    access = create_access_token(user_id, username)
+    refresh = create_refresh_token(user_id)
+    save_refresh_token(user_id, refresh)
+
+    typer.echo(f"\nAccess Token (15 min):\n{access}")
+    typer.echo(f"\nRefresh Token (7 dias):\n{refresh}")
+    typer.echo("\n💡 Use --token <access_token> nos demais comandos, ou exporte:")
+    typer.echo(f"   $env:BRURNA_TOKEN='{access}'")
+
+
+# ── Global token option ────────────────────────────────────────────────────────
+_PROTECTED_COMMANDS = {"download", "parse", "analyze", "sync-results"}
+
+
+@app.callback(invoke_without_command=True)
+def global_callback(
+    ctx: typer.Context,
+    token: str = typer.Option(None, "--token", envvar="BRURNA_TOKEN", help="JWT de acesso"),
+):
+    """BRURNA Analytics — use `auth login` para obter um token."""
+    if ctx.invoked_subcommand in _PROTECTED_COMMANDS:
+        if not token:
+            typer.echo("❌ Token JWT necessário. Execute: python main.py auth login", err=True)
+            raise typer.Exit(code=1)
+        from auth.jwt_utils import decode_token
+        import jwt as _jwt
+        try:
+            decode_token(token)
+        except _jwt.ExpiredSignatureError:
+            typer.echo("❌ Token expirado. Execute: python main.py auth login", err=True)
+            raise typer.Exit(code=1)
+        except _jwt.InvalidTokenError as e:
+            typer.echo(f"❌ Token inválido: {e}", err=True)
+            raise typer.Exit(code=1)
+
 
 @app.command()
 def download(
