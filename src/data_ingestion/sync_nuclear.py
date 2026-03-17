@@ -35,7 +35,8 @@ def sync_uf(uf, cleanup_local=True):
         'log_patterns': ['uf', 'turno', 'aplicativo', 'severidade', 'mensagem_padrao', 'mensagem_exemplo', 'ocorrencias', 'primeira_ocorrencia', 'ultima_ocorrencia'],
         'temporal_metrics': ['uf', 'turno', 'data', 'hora', 'aplicativo', 'severidade', 'quantidade'],
         'section_metadata': ['uf', 'turno', 'municipio_codigo', 'zona', 'secao', 'pk', 'total_eventos', 'periodo_inicio', 'periodo_fim', 'duracao_segundos', 'aplicativos_usados', 'severidades', 'hash_arquivo', 'modelo_urna', 'votos_computados', 'eleitores_habilitados', 'eleitores_sem_biometria', 'biometria_analysis'],
-        'mesarios': ['uf', 'turno', 'municipio_codigo', 'zona', 'secao', 'pk', 'numero_mesario', 'eleitor_secao', 'arquivo_biometria', 'eventos', 'primeiro_evento', 'ultimo_evento']
+        'mesarios': ['uf', 'turno', 'municipio_codigo', 'zona', 'secao', 'pk', 'numero_mesario', 'eleitor_secao', 'arquivo_biometria', 'eventos', 'primeiro_evento', 'ultimo_evento'],
+        'log_exceptions': ['uf', 'turno', 'municipio_codigo', 'zona', 'secao', 'sec_pk', 'timestamp', 'severidade', 'aplicativo', 'mensagem_bruta']
     }
     
     try:
@@ -67,27 +68,9 @@ def sync_uf(uf, cleanup_local=True):
             r_conn.commit()
             if os.path.exists(temp_forensic): os.remove(temp_forensic)
 
-        # 2. Sync RAW log_eventos
-        print(f"Syncing RAW logs for {uf.upper()}...")
-        r_cur.execute(f"DELETE FROM log_eventos WHERE source_file LIKE '{uf.lower()}/%'")
-        r_conn.commit()
+        # 2. Cleanup RAW logs from Database to save space (Since we already extracted intelligence)
+        # Note: We deliberately skip syncing `log_eventos` to AWS to save bandwidth and compute.
 
-        temp_raw = os.path.join(cache_dir, f"sync_raw_{uf}.csv")
-        raw_cols = ['source_file', 'timestamp', 'level', 'code', 'message', 'original_line']
-        raw_cols_str = ", ".join(raw_cols)
-        
-        copy_sql_out = f"COPY (SELECT {raw_cols_str} FROM log_eventos WHERE source_file LIKE '{uf.lower()}/%') TO STDOUT WITH CSV"
-        copy_sql_in = f"COPY log_eventos ({raw_cols_str}) FROM STDIN WITH CSV"
-
-        with open(temp_raw, 'wb') as f:
-            l_cur.copy_expert(copy_sql_out, f)
-        
-        with open(temp_raw, 'rb') as f:
-            r_cur.copy_expert(copy_sql_in, f)
-        
-        r_conn.commit()
-        if os.path.exists(temp_raw): os.remove(temp_raw)
-        
         # 3. Cleanup
         if cleanup_local:
             print(f"Cleaning local raw for {uf.upper()}...")

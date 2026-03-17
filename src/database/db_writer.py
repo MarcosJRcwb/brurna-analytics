@@ -140,6 +140,22 @@ BEGIN
         ALTER TABLE section_metadata ADD COLUMN biometria_analysis JSONB;
     END IF;
 END $$;
+
+-- Tabela de Exceções e Anomalias Brutas (Armazena a linha original, não o pattern_id)
+CREATE TABLE IF NOT EXISTS log_exceptions (
+    id SERIAL PRIMARY KEY,
+    uf VARCHAR(2) NOT NULL,
+    turno INTEGER NOT NULL,
+    municipio_codigo VARCHAR(10),
+    zona VARCHAR(10),
+    secao VARCHAR(10),
+    sec_pk VARCHAR(30), -- Vinculo forte com a URNA
+    timestamp TIMESTAMP,
+    severidade VARCHAR(20),
+    aplicativo VARCHAR(50),
+    mensagem_bruta TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 """
 
 def create_tables():
@@ -192,6 +208,13 @@ def save_temporal_metrics(temporal_df: pd.DataFrame, uf: str, turno: int):
         conn.close()
     except Exception as e:
         print(f"❌ Erro ao salvar métricas temporais: {e}")
+
+def save_log_exceptions_batch(df: pd.DataFrame):
+    """Save raw exception strings mapped to their forensic keys."""
+    if df.empty: return
+    with engine.begin() as conn:
+        df.to_sql('log_exceptions', conn, if_exists='append', index=False,
+                  method='multi', chunksize=1000)
 
 def _save_mesarios(conn, mesarios, uf, turno, municipio_codigo, zona, secao, pk):
     for m in mesarios:
