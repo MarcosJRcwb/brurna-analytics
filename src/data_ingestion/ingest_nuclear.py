@@ -337,4 +337,8 @@ def main(target_uf=None):
     print("\nNUCLEAR INGESTION V3 COMPLETE.")
 
 if __name__ == "__main__":
-    main()
+    import argparse
+    parser = argparse.ArgumentParser(description="Ingest RAW logs into database.")
+    parser.add_argument("--uf", type=str, help="Specific UF to target (e.g., AC, AP)", default=None)
+    args = parser.parse_args()
+    main(target_uf=args.uf)
