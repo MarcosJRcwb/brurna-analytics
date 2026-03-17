@@ -239,26 +239,26 @@ class AnalyticalEngine:
 
             # H012: Clock Drift (Future Timestamps)
             if h_id == "H012":
-                query = text("SELECT COUNT(*) FROM log_eventos WHERE timestamp > NOW()")
+                query = text("SELECT COUNT(*) FROM section_metadata WHERE periodo_fim > NOW()")
                 with self.engine.connect() as conn:
-                    cnt = conn.execute(query).scalar()
+                    cnt = conn.execute(query).scalar() or 0
                     return ("FAIL" if cnt > 0 else "PASS"), f"Future logs found: {cnt}"
             
             # H013: Pre-Boot Votes (Before 07:00)
             if h_id == "H013":
-                # Assuming election start 08:00, boot 07:00. Votes before 07:00 are wierd.
-                query = text("SELECT COUNT(*) FROM log_eventos WHERE EXTRACT(HOUR FROM timestamp) < 7")
+                # Assuming election start 08:00, boot 07:00. Votes before 07:00 are weird.
+                query = text("SELECT COALESCE(SUM(quantidade), 0) FROM temporal_metrics WHERE hora < 7")
                 with self.engine.connect() as conn:
-                    cnt = conn.execute(query).scalar()
-                    return ("INFO" if cnt > 0 else "PASS"), f"Early morning logs: {cnt}"
+                    cnt = conn.execute(query).scalar() or 0
+                    return ("INFO" if cnt > 0 else "PASS"), f"Early morning events: {cnt}"
 
             # H020: Error Rate < 0.1%
             if h_id == "H020":
                 query = text("""
                 SELECT 
-                    SUM(CASE WHEN level IN ('ERROR','CRITICAL') THEN 1 ELSE 0 END) as errors,
-                    COUNT(*) as total
-                FROM log_eventos
+                    (SELECT COALESCE(SUM(ocorrencias), 0) FROM log_patterns WHERE severidade IN ('ERROR','CRITICAL')) + 
+                    (SELECT COUNT(*) FROM log_exceptions) as errors,
+                    (SELECT COALESCE(SUM(total_eventos), 1) FROM section_metadata) as total
                 """)
                 with self.engine.connect() as conn:
                     res = conn.execute(query).fetchone()
@@ -269,19 +269,11 @@ class AnalyticalEngine:
 
             # H030: Monotonic Clock Check
             if h_id == "H030":
-                # Expensive check, sample or limit? checking last 1000 for speed
-                query = text("""
-                WITH ordered AS (
-                    SELECT timestamp, LAG(timestamp) OVER (ORDER BY id) as prev
-                    FROM log_eventos
-                    ORDER BY id DESC
-                    LIMIT 1000
-                )
-                SELECT COUNT(*) FROM ordered WHERE timestamp < prev
-                """)
+                # Adapted to check section_metadata for period inversions
+                query = text("SELECT COUNT(*) FROM section_metadata WHERE periodo_fim < periodo_inicio")
                 with self.engine.connect() as conn:
-                    cnt = conn.execute(query).scalar()
-                    return ("FAIL" if cnt > 0 else "PASS"), f"Time inversions found (Scanning sample): {cnt}"
+                    cnt = conn.execute(query).scalar() or 0
+                    return ("FAIL" if cnt > 0 else "PASS"), f"Time inversions found (metadata bounds): {cnt}"
 
 
             # H009: Tempo médio de votação (Proxy via VPH)
@@ -317,16 +309,12 @@ class AnalyticalEngine:
             # H040: Uptime (Ligada < 14h)
             if h_id == "H040":
                 query = text("""
-                SELECT source_file, (MAX(timestamp) - MIN(timestamp)) as uptime
-                FROM log_eventos
-                GROUP BY source_file
-                LIMIT 100
+                SELECT COUNT(*) as cnt
+                FROM section_metadata
+                WHERE EXTRACT(EPOCH FROM (periodo_fim - periodo_inicio)) > 14*3600
                 """)
                 with self.engine.connect() as conn:
-                    rows = conn.execute(query).fetchall()
-                    # Check if any > 14 hours
-                    long_runners = [r for r in rows if r.uptime.total_seconds() > 14*3600]
-                    cnt = len(long_runners)
+                    cnt = conn.execute(query).scalar() or 0
                     return ("FAIL" if cnt > 0 else "PASS"), f"Urnas > 14h found: {cnt}"
 
             
@@ -337,7 +325,7 @@ class AnalyticalEngine:
 
     def _check_hardware_logs(self, h_id, description):
         """
-        Generic check for hardware/operational logs using keyword matching against log_eventos.
+        Generic check for hardware/operational logs using log_patterns and log_exceptions.
         """
         try:
             # maintain connection
@@ -365,19 +353,23 @@ class AnalyticalEngine:
                 keywords = [w for w in desc_lower.split() if len(w) > 4][:1]
                 if not keywords: keywords = ["erro"]
 
-            # Construct ILIKE query OR
-            conditions = " OR ".join([f"message ILIKE '%%{k}%%'" for k in keywords])
+            # Construct ILIKE query OR for both tables
+            pat_cond = " OR ".join([f"mensagem_padrao ILIKE '%%{k}%%'" for k in keywords])
+            exc_cond = " OR ".join([f"mensagem_bruta ILIKE '%%{k}%%'" for k in keywords])
             
-            sql = text(f"SELECT COUNT(*) FROM log_eventos WHERE {conditions}")
+            sql = text(f"""
+                SELECT 
+                    COALESCE((SELECT SUM(ocorrencias) FROM log_patterns WHERE {pat_cond}), 0) +
+                    COALESCE((SELECT COUNT(*) FROM log_exceptions WHERE {exc_cond}), 0) as total
+            """)
             
             with self.engine.connect() as conn:
-                result = conn.execute(sql).scalar()
+                result = conn.execute(sql).scalar() or 0
             
             status = "INFO"
-            obs = f"Found {result} logs matching keywords: {keywords}"
+            obs = f"Found {result} events matching keywords: {keywords}"
             
-            # Heuristic: If we expect "No logs" (e.g. "Não há logs de erro") and count > 0 -> FAIL?
-            # Too risky for generic. Stick to INFO.
+            # Heuristic
             if "não há" in desc_lower or "não existe" in desc_lower:
                 if result > 0:
                     status = "FAIL (Anomaly)"
