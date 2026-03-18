@@ -1,0 +1,7 @@
+{
+  "slots": [
+    { "id": "feature-1", "status": "available", "run_id": null, "branch": null, "claimed_at": null, "last_heartbeat": null },
+    { "id": "feature-2", "status": "available", "run_id": null, "branch": null, "claimed_at": null, "last_heartbeat": null },
+    { "id": "feature-3", "status": "available", "run_id": null, "branch": null, "claimed_at": null, "last_heartbeat": null }
+  ]
+}

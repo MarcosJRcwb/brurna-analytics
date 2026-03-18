@@ -1,0 +1,26 @@
+{
+  "run_id": "ax-c613f0c0",
+  "feature_slug": "reporting-and-drilldown",
+  "ambiguity_score": 0.15,
+  "goals": [
+    "implement hierarchical drilldown (UF -> City -> Zone -> Section -> Urna) in dashboard",
+    "implement PDF report generation with dual-mode (ABNT A4 + Statistical)",
+    "enable raw log viewing for specific section/urna in the UI",
+    "generate a global First Round (1T) overview report"
+  ],
+  "constraints": [
+    "maintain PT-BR localization for all reports and UI",
+    "ensure PDF generation is on-demand via dashboard buttons",
+    "use absolute paths for all data fetching and report saving"
+  ],
+  "acceptance_criteria": [
+    "successful PDF generation for all hierarchy levels",
+    "raw logs correctly filtered by section/urna in the UI",
+    "standardized ABNT layout for per-urna/section reports"
+  ],
+  "chosen_approach": "Streamlit multipage or tab-based drilldown with a background ReportingEngine for PDF generation using reportlab/weasyprint",
+  "scope": ["src/dashboard/", "src/reports/"],
+  "restricted": [],
+  "source": "brainstorm_spec",
+  "spec_path": "c:/Users/marco/.gemini/antigravity/brain/823a5e8b-dcb0-4e8e-84b0-5afb5d3b200b/axiom_reporting_brainstorm.md"
+}

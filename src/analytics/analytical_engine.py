@@ -437,8 +437,14 @@ class AnalyticalEngine:
         print(f"\n✅ Execution completed. Results saved to {self.results_path}")
 
 if __name__ == "__main__":
-    # Pointing to the definitive brain artifact
-    PLAN_PATH = r"C:\Users\marco\.gemini\antigravity\brain\823a5e8b-dcb0-4e8e-84b0-5afb5d3b200b\plano_analise_500_final.md"
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--uf", type=str, help="Filter analysis by UF (optional)", default=None)
+    parser.add_argument("--plan", type=str, help="Path to markdown plan", 
+                        default=r"C:\Users\marco\.gemini\antigravity\brain\823a5e8b-dcb0-4e8e-84b0-5afb5d3b200b\plano_analise_500_final.md")
+    args = parser.parse_args()
     
-    engine = AnalyticalEngine(PLAN_PATH)
+    engine = AnalyticalEngine(args.plan)
+    # If UF is provided, we could pass it to execute_all or update queries.
+    # For now, running global as it already groups by UF in some checks.
     engine.execute_all()

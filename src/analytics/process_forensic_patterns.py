@@ -7,8 +7,9 @@ from tqdm import tqdm
 from multiprocessing import Pool, cpu_count
 from typing import List, Dict
 
-# Add project root to path
+# Add src and project root to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 from config import config
 from analytics.aggregator import aggregate_logs
@@ -79,7 +80,7 @@ def process_uf_batch(uf: str, turno: int = 1, db_url: str = None):
     print(f"\n>>> AGREGADOR PARALELO: {uf.upper()} ({db_url})")
     
     with engine.connect() as conn:
-        query = text("SELECT DISTINCT source_file FROM log_eventos WHERE source_file LIKE :pattern")
+        query = text("SELECT DISTINCT source_file FROM log_eventos WHERE source_file ILIKE :pattern")
         res = conn.execute(query, {"pattern": f"{uf.lower()}/%"}).fetchall()
         source_files = [r[0] for r in res]
         

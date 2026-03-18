@@ -133,7 +133,20 @@ class TSEDownloader:
         return df
 
 if __name__ == "__main__":
-    # Teste rápido com 5 seções
-    downloader = TSEDownloader()
-    df = downloader.download_uf("ac", limit=5)
+    import argparse
+    parser = argparse.ArgumentParser(description="TSE Log Downloader")
+    parser.add_argument("--uf", type=str, help="UF to download (e.g. ac, se, rr)")
+    parser.add_argument("--limit", type=int, help="Limit number of sections")
+    parser.add_argument("--turno", type=int, default=1, help="Turno (1 or 2)")
+    
+    args = parser.parse_args()
+    
+    downloader = TSEDownloader(turno=args.turno)
+    
+    if args.uf:
+        df = downloader.download_uf(args.uf.lower(), limit=args.limit)
+    else:
+        # Default test
+        df = downloader.download_uf("ac", limit=5)
+    
     print(f"\nResumo: {len(df)} seção(s) processada(s)")

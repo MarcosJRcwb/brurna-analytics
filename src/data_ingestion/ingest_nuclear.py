@@ -18,7 +18,8 @@ try:
 except ImportError:
     import config
 
-LOG_REGEX = re.compile(r'^(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2}:\d{2})\s+(\w+)\s+([A-Z0-9]+)?\s*(.*)$')
+# Improved Regex to handle both Spaces (Native/Standard) and Tabs (TSE Specific Format)
+LOG_REGEX = re.compile(r'^(\d{2}/\d{2}/\d{4})\s+(\d{2}:\d{2}:\d{2})[\s\t]+(\w+)[\s\t]+([A-Z0-9]+)?[\s\t]*(.*)$')
 STATUS_DIR = "logs/workers"
 NATIVE_7Z = r"C:\Program Files\7-Zip\7z.exe"
 FINAL_STATUS_FILE = "ingestion_status.json"
@@ -29,25 +30,18 @@ def parse_line(line, filename):
     match = LOG_REGEX.match(line)
     if match:
         date_str, time_str, level, code, msg = match.groups()
-        is_critical = level != "INFO"
-        if not is_critical:
-            keywords = ["bateria", "reboot", "inicializa", "boot", "desliga", "hash", "assinatura", "lacre", "viol", "erro", "falha"]
-            if any(k in msg.lower() for k in keywords):
-                is_critical = True
-        
-        if is_critical:
-            try:
-                ts = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M:%S")
-                return {
-                    'source_file': filename,
-                    'timestamp': ts,
-                    'level': level,
-                    'code': code or '',
-                    'message': msg,
-                    'original_line': "" 
-                }
-            except ValueError:
-                return None
+        try:
+            ts = datetime.strptime(f"{date_str} {time_str}", "%d/%m/%Y %H:%M:%S")
+            return {
+                'source_file': filename,
+                'timestamp': ts,
+                'level': level,
+                'code': code or '',
+                'message': msg,
+                'original_line': line # Save original line for further forensic drill-down
+            }
+        except ValueError:
+            return None
     return None
 
 def worker_proc(worker_id, file_list, db_conn_str, session_id):
@@ -168,7 +162,10 @@ def worker_proc(worker_id, file_list, db_conn_str, session_id):
         save_worker_status()
 
 def aggregator_main(total_count, start_time):
-    """Aggregate all 30 workers into the UI."""
+    """Aggregate all 30 workers into the UI and terminal."""
+    from tqdm import tqdm
+    pbar = tqdm(total=total_count, desc="[Nuclear Ingestion]", unit="files", ncols=100)
+    last_prog = 0
     while True:
         try:
             agg_progress = 0
@@ -187,6 +184,10 @@ def aggregator_main(total_count, start_time):
                         last_file = data['file']
                 except: pass
             
+            if agg_progress > last_prog:
+                pbar.update(agg_progress - last_prog)
+                last_prog = agg_progress
+
             elapsed = (datetime.now() - start_time).total_seconds()
             # Calculate ETA based on aggregated rate
             eta = (total_count - agg_progress) / agg_rate if agg_rate > 0 else 0
@@ -207,9 +208,10 @@ def aggregator_main(total_count, start_time):
             with open(FINAL_STATUS_FILE, 'w') as f:
                 json.dump(status, f)
             
-            if agg_progress >= total_count: break
+            if agg_progress + agg_errors >= total_count: break
         except Exception: pass
         time.sleep(1)
+    pbar.close()
 
 def manage_indexes(action="drop"):
     engine = create_engine(config.POSTGRES_CONN)
@@ -272,7 +274,7 @@ def main(target_uf=None):
     # Check Local First (Fastest)
     try:
         with local_engine.connect() as l_conn:
-            patterns = [f"{st}/%" for st in target_states]
+            patterns = [f"{st}/%" for st in target_states] + [f"{st}\\%" for st in target_states]
             query = text("SELECT DISTINCT source_file FROM log_eventos WHERE " + " OR ".join(["source_file LIKE :p" + str(i) for i in range(len(patterns))]))
             params = {f"p{i}": p for i, p in enumerate(patterns)}
             res = l_conn.execute(query, params).fetchall()
@@ -285,7 +287,7 @@ def main(target_uf=None):
     # Check Remote (to avoid re-syncing if already there)
     try:
         with remote_engine.connect() as r_conn:
-            patterns = [f"{st}/%" for st in target_states]
+            patterns = [f"{st}/%" for st in target_states] + [f"{st}\\%" for st in target_states]
             query = text("SELECT DISTINCT source_file FROM log_eventos WHERE " + " OR ".join(["source_file LIKE :p" + str(i) for i in range(len(patterns))]))
             params = {f"p{i}": p for i, p in enumerate(patterns)}
             res = r_conn.execute(query, params).fetchall()

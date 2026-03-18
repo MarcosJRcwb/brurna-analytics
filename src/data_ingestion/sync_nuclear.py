@@ -83,17 +83,26 @@ def sync_uf(uf, cleanup_local=True):
         
         l_cur.close(); l_conn.close()
         r_cur.close(); r_conn.close()
-        print(f"✅ UF {uf.upper()} full sync completed.")
+        print(f"UF {uf.upper()} full sync completed.")
 
     except Exception as e:
-        print(f"❌ Critical Sync Error for {uf}: {e}")
+        print(f"Critical Sync Error for {uf}: {e}")
         if 'l_conn' in locals(): l_conn.close()
         if 'r_conn' in locals(): r_conn.close()
         raise e  # Re-raise to alert orchestrator
 
 def main():
-    print("SYNC MANAGER ACTIVE (High-Performance Mode)")
-    # If called as standalone, it will just check and sync EVERYTHING with a slash
+    import argparse
+    parser = argparse.ArgumentParser(description="Sync Forensic Data to Remote DB")
+    parser.add_argument("--uf", type=str, help="Specific UF to sync (e.g., rr)", required=False)
+    args = parser.parse_args()
+
+    if args.uf:
+        print(f"SYNC MANAGER: Processing single UF {args.uf.upper()}")
+        sync_uf(args.uf.lower(), cleanup_local=True)
+        return
+
+    print("SYNC MANAGER ACTIVE (Daemon Mode - DEPRECATED for Parallel Orchestrator)")
     local_engine = create_engine(LOCAL_URL)
     while True:
         try:
@@ -107,9 +116,10 @@ def main():
             }
             with open(SYNC_STATUS_FILE, "w") as f:
                 json.dump(status, f)
+            print(f"[{datetime.now().strftime('%H:%M:%S')}] Sync sleep: 30s...")
         except Exception as e:
             print(f"Loop error: {e}")
-        time.sleep(300) # Check every 5 mins
+        time.sleep(30) # Check every 30s for better visibility
 
 if __name__ == "__main__":
     main()

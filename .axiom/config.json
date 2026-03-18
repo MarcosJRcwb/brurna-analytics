@@ -1,0 +1,9 @@
+{
+  "delivery_mode": "direct",
+  "target_branch": "main",
+  "pool_size": 3,
+  "auto_merge_on_ci_pass": false,
+  "test_command": null,
+  "package_manager": "pip",
+  "checkpoint_mode": true
+}

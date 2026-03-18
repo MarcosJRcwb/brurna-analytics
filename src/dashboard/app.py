@@ -129,58 +129,100 @@ def get_ingestion_stats():
     except:
         return pd.DataFrame()
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=2)
 def get_dual_sync_status():
     """Fetch counts from both Local and Remote DB for comparative Sync Status."""
     ufs_target = ['SE', 'RR', 'TO', 'AC', 'AP']
     
-    def fetch_counts(conn_str):
+    def fetch_data(conn_str):
+        from sqlalchemy.pool import NullPool
         try:
-            eng = create_engine(conn_str)
-            q = text("""
-                SELECT 
-                    CASE 
-                        WHEN source_file LIKE '%/ac/%' OR source_file LIKE '%\\ac\\%' THEN 'AC'
-                        WHEN source_file LIKE '%/ap/%' OR source_file LIKE '%\\ap\\%' THEN 'AP'
-                        WHEN source_file LIKE '%/rr/%' OR source_file LIKE '%\\rr\\%' THEN 'RR'
-                        WHEN source_file LIKE '%/to/%' OR source_file LIKE '%\\to\\%' THEN 'TO'
-                        WHEN source_file LIKE '%/se/%' OR source_file LIKE '%\\se\\%' THEN 'SE'
-                        ELSE 'Outros'
-                    END as uf,
-                    COUNT(*) as total
-                FROM log_eventos
-                GROUP BY 1
-            """)
+            eng = create_engine(conn_str, poolclass=NullPool)
             with eng.connect() as conn:
-                df = pd.read_sql(q, conn)
-                # Ensure all targets are present
-                df = df[df['uf'].isin(ufs_target)]
-                # Map to dictionary {uf: total}
-                return dict(zip(df['uf'], df['total']))
-        except:
-            return {uf: 0 for uf in ufs_target}
+                q_meta = text("SELECT upper(uf) as uf, COUNT(*) as meta_total FROM section_metadata GROUP BY 1")
+                df_meta = pd.read_sql(q_meta, conn)
+                q_logs = text("""
+                    SELECT 
+                        CASE 
+                            WHEN source_file LIKE '%/ac/%' OR source_file LIKE '%\\ac\\%' THEN 'AC'
+                            WHEN source_file LIKE '%/ap/%' OR source_file LIKE '%\\ap\\%' THEN 'AP'
+                            WHEN source_file LIKE '%/rr/%' OR source_file LIKE '%\\rr\\%' THEN 'RR'
+                            WHEN source_file LIKE '%/to/%' OR source_file LIKE '%\\to\\%' THEN 'TO'
+                            WHEN source_file LIKE '%/se/%' OR source_file LIKE '%\\se\\%' THEN 'SE'
+                            ELSE 'Outros'
+                        END as uf,
+                        COUNT(*) as raw_total
+                    FROM log_eventos
+                    GROUP BY 1
+                """)
+                df_logs = pd.read_sql(q_logs, conn)
+                return df_meta, df_logs
+        except Exception:
+            return pd.DataFrame(), pd.DataFrame()
 
-    local_counts = fetch_counts(config.LOCAL_POSTGRES_CONN)
-    remote_counts = fetch_counts(config.REMOTE_POSTGRES_CONN)
+    loc_meta, loc_logs = fetch_data(config.LOCAL_POSTGRES_CONN)
+    rem_meta, rem_logs = fetch_data(config.REMOTE_POSTGRES_CONN)
     
-    # Expected approx file counts per state from previous analysis
-    expected = {'SE': 5104, 'RR': 1182, 'TO': 3824, 'AC': 1587, 'AP': 1206}
+    # Expected approx file counts per state
+    expected = {'SE': 4207, 'RR': 1124, 'TO': 3593, 'AC': 2118, 'AP': 1740}
+    avg_logs_per_urn = 7500
     
     rows = []
     for uf in ufs_target:
-        loc = local_counts.get(uf, 0)
-        rem = remote_counts.get(uf, 0)
-        exp = expected.get(uf, 1) # avoid div by zero
-        loc_pct = (loc / exp) * 100 if loc <= exp else 100
-        sync_pct = (rem / loc) * 100 if loc > 0 else 0
+        # Extract Local data
+        l_meta_val = loc_meta.loc[loc_meta['uf'] == uf, 'meta_total'].values[0] if (not loc_meta.empty and uf in loc_meta['uf'].values) else 0
+        l_logs_val = loc_logs.loc[loc_logs['uf'] == uf, 'raw_total'].values[0] if (not loc_logs.empty and uf in loc_logs['uf'].values) else 0
+        
+        # Extract Remote data
+        r_meta_val = rem_meta.loc[rem_meta['uf'] == uf, 'meta_total'].values[0] if (not rem_meta.empty and uf in rem_meta['uf'].values) else 0
+        
+        exp_urnas = expected.get(uf, 1)
+        exp_logs = exp_urnas * avg_logs_per_urn
+        
+        phase = "Aguardando"
+        progress_pct = 0.0
+        details = "0"
+        
+        # Analysis status check
+        analysis_done = os.path.exists("analysis_results.csv")
+        
+        if l_meta_val >= exp_urnas * 0.95:
+            if r_meta_val >= exp_urnas * 0.95:
+                phase = "🌟 Concluído"
+                progress_pct = 100.0
+            elif analysis_done:
+                phase = "✅ Fase 4: Sinc. Remoto"
+                progress_pct = (r_meta_val / exp_urnas) * 100
+                progress_pct = min(100.0, progress_pct)
+            else:
+                phase = "🧠 Fase 3: Motor Analítico"
+                progress_pct = 80.0 # Heuristic for analysis starting
+            details = f"{l_meta_val} Seções"
+        elif l_meta_val > 0:
+            phase = "🕵️ Fase 2: Agregador"
+            progress_pct = (l_meta_val / exp_urnas) * 100
+            details = f"{l_meta_val} / {exp_urnas} Seções"
+        elif l_logs_val > 0:
+            phase = "☢️ Fase 1: Ingestão Bruta"
+            progress_pct = (l_logs_val / exp_logs) * 100
+            progress_pct = min(99.9, progress_pct)
+            details = f"{format_number(l_logs_val)} / ~{format_number(exp_logs)} logs"
+            
+        sync_pct_str = f"{min(100, (r_meta_val / exp_urnas) * 100):.1f}%" if r_meta_val > 0 else "0.0%"
+        
+        # Create visual progress bar (ASCII style for columns)
+        bar_len = 15
+        filled = int(bar_len * (progress_pct / 100))
+        bar = "█" * filled + "░" * (bar_len - filled)
         
         rows.append({
             "UF": uf,
-            "Alvo Estimado": format_number(exp),
-            "Local (Processado)": format_number(loc),
-            "Ingestão Local %": f"{loc_pct:.1f}%",
-            "Remoto (Sincronizado)": format_number(rem),
-            "Sincronismo Remoto %": f"{sync_pct:.1f}%"
+            "Alvo Estimado": format_number(exp_urnas),
+            "Fase Atual": phase,
+            "Progresso Visual": f"{bar} {progress_pct:.1f}%",
+            "Detalhes do Proc.": details,
+            "Remoto (Sincronizado)": format_number(r_meta_val),
+            "Cloud Sync %": sync_pct_str
         })
     return pd.DataFrame(rows)
 
@@ -199,7 +241,7 @@ st.title("🗳️ Brurna Analytics: Painel de Inteligência Eleitoral")
 # --- INGESTION STATUS (LIVE) ---
 st.subheader("🔄 Status do Banco: Sincronismo Nuclear")
 sync_df = get_dual_sync_status()
-st.dataframe(sync_df, use_container_width=True, hide_index=True)
+st.dataframe(sync_df, width="stretch", hide_index=True)
 st.caption("A tabela acima monitora os logs brutos nos dois ambientes (Ryzen Local vs AWS/Remoto).")
 
 # Monitoramento de Operações em Background
@@ -221,22 +263,26 @@ with col_ops2:
 st.markdown("---")
 
 # Load Analysis Data
-@st.cache_data
+@st.cache_data(ttl=60) # Refresh every minute
 def load_data():
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../"))
+    path = os.path.join(project_root, "analysis_results.csv")
+    
+    if not os.path.exists(path):
+        return pd.DataFrame()
+        
     try:
-        path = "analysis_results.csv"
-        if not os.path.exists(path):
-            path = r"C:\Users\marco\OneDrive\Projetos\brurna-analytics\analysis_results.csv"
         df = pd.read_csv(path)
         return df
     except Exception as e:
-        st.error(f"Erro ao carregar dados: {e}")
+        print(f"Error loading CSV: {e}")
         return pd.DataFrame()
 
 df = load_data()
 
 if df.empty:
-    st.warning("Nenhum dado analítico encontrado. O motor ainda está rodando?")
+    st.info("ℹ️ Nenhum dado analítico encontrado. O Motor Analítico precisa rodar para gerar os resultados das 500 hipóteses.")
+    st.caption(f"Procurando em: {os.path.abspath(os.path.join(os.path.dirname(__file__), '../../analysis_results.csv'))}")
     st.stop()
 
 # Sidebar
