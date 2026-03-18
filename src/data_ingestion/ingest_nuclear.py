@@ -136,11 +136,13 @@ def worker_proc(worker_id, file_list, db_conn_str, session_id):
                     # Hyper-Agile DB batch (10 files as requested for bursts)
                     if processed_files % 10 == 0 or processed_files == total_files:
                         if batch_records:
+                            print(f"[Worker {worker_id}] Committing {len(batch_records)} records to DB...")
                             conn.execute(
                                 text("INSERT INTO log_eventos (source_file, timestamp, level, code, message, original_line) VALUES (:source_file, :timestamp, :level, :code, :message, :original_line)"),
                                 batch_records
                             )
                             conn.commit()
+                            print(f"[Worker {worker_id}] COMMIT SUCCESS.")
                             batch_records = []
                         save_worker_status()
 
@@ -234,6 +236,7 @@ def manage_indexes(action="drop"):
 
 def main(target_uf=None):
     print(f"INITIALIZING NUCLEAR INGESTION V3 (Session: {RUN_ID})")
+    print(f"USING LOCAL DATABASE: {config.LOCAL_POSTGRES_CONN.split('@')[-1]}") # Obfuscated but shows host/db
     if target_uf:
         print(f"Targeting specific UF: {target_uf.upper()}")
     

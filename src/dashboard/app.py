@@ -156,21 +156,17 @@ def get_dual_sync_status():
             with eng.connect() as conn:
                 q_meta = text("SELECT upper(uf) as uf, COUNT(*) as meta_total FROM section_metadata GROUP BY 1")
                 df_meta = pd.read_sql(q_meta, conn)
-                q_logs = text("""
-                    SELECT 
-                        CASE 
-                            WHEN source_file LIKE '%/ac/%' OR source_file LIKE '%\\ac\\%' THEN 'AC'
-                            WHEN source_file LIKE '%/ap/%' OR source_file LIKE '%\\ap\\%' THEN 'AP'
-                            WHEN source_file LIKE '%/rr/%' OR source_file LIKE '%\\rr\\%' THEN 'RR'
-                            WHEN source_file LIKE '%/to/%' OR source_file LIKE '%\\to\\%' THEN 'TO'
-                            WHEN source_file LIKE '%/se/%' OR source_file LIKE '%\\se\\%' THEN 'SE'
-                            ELSE 'Outros'
-                        END as uf,
-                        COUNT(*) as raw_total
-                    FROM log_eventos
-                    GROUP BY 1
-                """)
-                df_logs = pd.read_sql(q_logs, conn)
+                
+                # Optimized Log Count: Only check relevant UFs with LIKE (Fast)
+                target_ufs_lower = ['ac', 'ap', 'rr', 'to', 'se', 'pr', 'sc', 'rs']
+                log_counts = []
+                for uf in target_ufs_lower:
+                    q_count = text("SELECT COUNT(*) FROM log_eventos WHERE source_file LIKE :p")
+                    cnt = conn.execute(q_count, {"p": f"{uf}/%"}).scalar() or 0
+                    if cnt > 0:
+                        log_counts.append({'uf': uf.upper(), 'raw_total': cnt})
+                
+                df_logs = pd.DataFrame(log_counts) if log_counts else pd.DataFrame(columns=['uf', 'raw_total'])
                 return df_meta, df_logs
         except Exception:
             return pd.DataFrame(), pd.DataFrame()
@@ -179,11 +175,27 @@ def get_dual_sync_status():
     rem_meta, rem_logs = fetch_data(config.REMOTE_POSTGRES_CONN)
     
     # Expected approx file counts per state (TSE 1T 2022)
-    expected = {'SE': 3911, 'RR': 1124, 'TO': 3591, 'AC': 2118, 'AP': 1740}
+    expected = {
+        'AC': 2118, 'AL': 6696, 'AP': 1740, 'AM': 8087, 'BA': 34151, 'CE': 22763,
+        'DF': 4048, 'ES': 9534, 'GO': 16867, 'MA': 17756, 'MT': 8408, 'MS': 7083,
+        'MG': 50125, 'PA': 19574, 'PB': 10403, 'PR': 25932, 'PE': 22171, 'PI': 9287,
+        'RJ': 34220, 'RN': 7926, 'RS': 27043, 'RO': 3543, 'RR': 1124, 'SC': 16340,
+        'SE': 3911, 'SP': 100994, 'TO': 3591, 'ZZ': 971
+    }
+
+    # Dynamic target list: Any state in DB + PR, SC, RS (Active target)
+    db_ufs = set(loc_meta['uf'].unique()) if not loc_meta.empty else set()
+    db_ufs.update(loc_logs['uf'].unique() if not loc_logs.empty else set())
+    active_target = {'PR', 'SC', 'RS', 'SE', 'RR', 'TO', 'AC', 'AP'}
+    ufs_target = sorted(list(db_ufs.union(active_target)))
+    if 'OUTROS' in ufs_target: ufs_target.remove('OUTROS')
+    if '' in ufs_target: ufs_target.remove('')
+    
     avg_logs_per_urn = 7500
     
     rows = []
     for uf in ufs_target:
+        if not uf or len(uf) != 2: continue
         # Extract Local data
         l_meta_val = loc_meta.loc[loc_meta['uf'] == uf, 'meta_total'].values[0] if (not loc_meta.empty and uf in loc_meta['uf'].values) else 0
         l_logs_val = loc_logs.loc[loc_logs['uf'] == uf, 'raw_total'].values[0] if (not loc_logs.empty and uf in loc_logs['uf'].values) else 0

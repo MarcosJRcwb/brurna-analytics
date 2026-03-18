@@ -71,15 +71,14 @@ def sync_uf(uf, cleanup_local=True):
         # 2. Cleanup RAW logs from Database to save space (Since we already extracted intelligence)
         # Note: We deliberately skip syncing `log_eventos` to AWS to save bandwidth and compute.
 
-        # 3. Cleanup
+        # 3. Cleanup (DISABLED FOR CUMULATIVE SOUTH SYNC)
         if cleanup_local:
-            print(f"Cleaning local raw for {uf.upper()}...")
-            l_cur.execute(f"DELETE FROM log_eventos WHERE source_file LIKE '{uf.lower()}/%'")
-            l_conn.commit()
+            print(f"Skipping local raw cleanup for {uf.upper()} to preserve evidence during cumulative sync.")
+            # l_cur.execute(f"DELETE FROM log_eventos WHERE source_file LIKE '{uf.lower()}/%'")
+            # l_conn.commit()
             
-            print("Vacuuming local...")
-            l_conn.set_isolation_level(psycopg2.extensions.ISOLATION_LEVEL_AUTOCOMMIT)
-            l_cur.execute("VACUUM ANALYZE log_eventos")
+            # print("Vacuuming local...")
+            # l_cur.execute("VACUUM ANALYZE log_eventos")
         
         l_cur.close(); l_conn.close()
         r_cur.close(); r_conn.close()
