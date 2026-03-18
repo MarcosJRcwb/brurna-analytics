@@ -1,3 +1,4 @@
+# --- Brurna Analytics Dashboard v1.17.1-fixed ---
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -16,6 +17,8 @@ from config import config
 # --- Authentication gate (must run before any page render) ---
 from auth.auth_gate import require_auth
 require_auth()
+
+from reports.engine import ReportingEngine
 
 
 # Configurar locale para PT-BR
@@ -104,6 +107,18 @@ def get_ingestion_status():
             return None
     return None
 
+def get_global_report_status():
+    """Read live status of global report generation."""
+    import json
+    status_path = Path("reports/global_status.json")
+    if status_path.exists():
+        try:
+            with open(status_path, 'r') as f:
+                return json.load(f)
+        except:
+            return None
+    return None
+
 def get_ingestion_stats():
     """Query live row counts per state based on source_file path/name."""
     try:
@@ -163,8 +178,8 @@ def get_dual_sync_status():
     loc_meta, loc_logs = fetch_data(config.LOCAL_POSTGRES_CONN)
     rem_meta, rem_logs = fetch_data(config.REMOTE_POSTGRES_CONN)
     
-    # Expected approx file counts per state
-    expected = {'SE': 4207, 'RR': 1124, 'TO': 3593, 'AC': 2118, 'AP': 1740}
+    # Expected approx file counts per state (TSE 1T 2022)
+    expected = {'SE': 3911, 'RR': 1124, 'TO': 3591, 'AC': 2118, 'AP': 1740}
     avg_logs_per_urn = 7500
     
     rows = []
@@ -330,9 +345,10 @@ col4.metric("Anomalias Detectadas", anomalies, delta_color="inverse")
 st.markdown("---")
 
 # --- TABS PARA ORGANIZAÇÃO ---
-tab1, tab2, tab3, tab4 = st.tabs(["📊 Visão Geral", "🔍 Análise Profunda", "📋 Detalhamento", "🚀 Monitor de Execução"])
+tab1, tab2, tab3, tab4 = st.tabs(["📊 Visão Geral", "🧠 Análise Profunda", "🔍 Detalhamento Forense & Relatórios", "🚀 Monitor de Execução"])
 
 with tab1:
+    # Metrics
     # Metrics
     col1, col2, col3, col4 = st.columns(4)
     total = len(df)
@@ -460,48 +476,186 @@ with tab2:
         st.success("✅ Nenhuma anomalia crítica detectada!")
 
 with tab3:
-    st.subheader("📋 Detalhamento Completo das Hipóteses")
+    st.header("🔍 Detalhamento Forense e Relatórios")
     
-    # Filtros na própria tab
-    col_f1, col_f2 = st.columns(2)
-    with col_f1:
-        grupo_filter_tab = st.multiselect(
-            "Filtrar por Grupo",
-            options=['G1: Temporal', 'G2: Hardware', 'G3: Forense', 'G4: Cruzamento'],
-            default=['G1: Temporal', 'G2: Hardware', 'G3: Forense', 'G4: Cruzamento'],
-            key="grupo_tab3"
-        )
-    with col_f2:
-        status_filter_tab = st.multiselect(
-            "Filtrar por Status",
-            options=df["Status"].unique(),
-            default=df["Status"].unique(),
-            key="status_tab3"
-        )
+    # Hierarchical Selection
+    col_sel1, col_sel2, col_sel3, col_sel4 = st.columns(4)
     
-    # Aplicar filtros
-    mask = df["Status"].isin(status_filter_tab) & df["Grupo"].isin(grupo_filter_tab)
-    filtered_df = df[mask]
+    engine_sql = get_current_engine()
     
-    st.caption(f"Mostrando {len(filtered_df)} de {len(df)} hipóteses")
+    with col_sel1:
+        q_ufs = text("SELECT DISTINCT upper(uf) as uf FROM section_metadata ORDER BY 1")
+        with engine_sql.connect() as conn:
+            ufs_list = pd.read_sql(q_ufs, conn)['uf'].tolist()
+        if not ufs_list: ufs_list = ['AC', 'AP', 'RR', 'TO', 'SE']
+        selected_uf = st.selectbox("UF", options=ufs_list, key="sel_uf")
+        
+    with col_sel2:
+        q_mun = text("SELECT DISTINCT municipio_codigo FROM section_metadata WHERE lower(uf) = :uf ORDER BY 1")
+        with engine_sql.connect() as conn:
+            muns = pd.read_sql(q_mun, conn, params={"uf": selected_uf.lower()})['municipio_codigo'].tolist()
+        mun_options = ["--- TODOS ---"] + [str(m) for m in muns]
+        selected_mun = st.selectbox("Município (Cód. TSE)", options=mun_options, key="sel_mun")
+        
+    with col_sel3:
+        mun_filter = "" if selected_mun == "--- TODOS ---" else "AND municipio_codigo = :mun"
+        q_zona = text(f"SELECT DISTINCT zona FROM section_metadata WHERE lower(uf) = :uf {mun_filter} ORDER BY 1")
+        params = {"uf": selected_uf.lower()}
+        if selected_mun != "--- TODOS ---": params["mun"] = selected_mun
+        with engine_sql.connect() as conn:
+            zonas = pd.read_sql(q_zona, conn, params=params)['zona'].tolist()
+        zona_options = ["--- TODOS ---"] + [str(z) for z in zonas]
+        selected_zona = st.selectbox("Zona Eleitoral", options=zona_options, key="sel_zona")
+
+    with col_sel4:
+        mun_f = "" if selected_mun == "--- TODOS ---" else "AND municipio_codigo = :mun"
+        zon_f = "" if selected_zona == "--- TODOS ---" else "AND zona = :zon"
+        q_sec = text(f"SELECT DISTINCT secao FROM section_metadata WHERE lower(uf) = :uf {mun_f} {zon_f} ORDER BY 1")
+        p = {"uf": selected_uf.lower()}
+        if selected_mun != "--- TODOS ---": p["mun"] = selected_mun
+        if selected_zona != "--- TODOS ---": p["zon"] = selected_zona
+        with engine_sql.connect() as conn:
+            secs = pd.read_sql(q_sec, conn, params=p)['secao'].tolist()
+        sec_options = ["--- TODOS ---"] + [str(s) for s in secs]
+        selected_sec = st.selectbox("Seção Eleitoral", options=sec_options, key="sel_sec")
+        
+    st.divider()
     
-    # Show Table
-    st.dataframe(
-        filtered_df[["ID", "Description", "Status", "Observation"]],
-        column_config={
-            "Status": st.column_config.TextColumn(
-                "Status",
-                help="Resultado da Análise",
-                width="medium",
-            ),
-            "Observation": st.column_config.TextColumn(
-                "Obs",
-                width="large",
-            ),
-        },
-        use_container_width=True,
-        hide_index=True
-    )
+    # Determine the context and level for the report
+    if selected_mun == "--- TODOS ---":
+        report_level = "UF"
+        report_id = selected_uf
+        scope_desc = f"Estado: {selected_uf}"
+    elif selected_zona == "--- TODOS ---":
+        report_level = "CIDADE"
+        report_id = selected_mun
+        scope_desc = f"Município: {selected_mun} ({selected_uf})"
+    elif selected_sec == "--- TODOS ---":
+        report_level = "ZONA"
+        report_id = selected_zona
+        scope_desc = f"Zona: {selected_zona} (Mun: {selected_mun}, UF: {selected_uf})"
+    else:
+        report_level = "SECAO"
+        report_id = selected_sec
+        scope_desc = f"Seção: {selected_sec} (Zona: {selected_zona}, Mun: {selected_mun}, UF: {selected_uf})"
+
+    st.info(f"📍 Escopo Ativo: **{scope_desc}**")
+    
+    # View Options
+    view_mode = st.radio("Escolha a Visualização", options=["📊 Sumário de Hipóteses", "📄 Logs Brutos (Forense)"], horizontal=True)
+    
+    # Pre-build WHERE clause for current scope
+    where_parts = ["lower(uf) = lower(:uf)"]
+    p_sql = {"uf": selected_uf}
+    if selected_mun != "--- TODOS ---":
+        where_parts.append("municipio_codigo = :mun")
+        p_sql["mun"] = str(selected_mun)
+    if selected_zona != "--- TODOS ---":
+        where_parts.append("zona = :zon")
+        p_sql["zon"] = str(selected_zona)
+    if selected_sec != "--- TODOS ---":
+        where_parts.append("secao = :sec")
+        p_sql["sec"] = str(selected_sec)
+    
+    where_clause = "WHERE " + " AND ".join(where_parts)
+    
+    if view_mode == "📊 Sumário de Hipóteses":
+        st.subheader(f"Anomalias Detectadas em {report_level}")
+        q_ex = text(f"SELECT * FROM log_exceptions {where_clause} LIMIT 50")
+        with engine_sql.connect() as conn:
+            df_ex = pd.read_sql(q_ex, conn, params=p_sql)
+        
+        if df_ex.empty:
+            st.success("✅ Nenhuma anomalia crítica detectada neste escopo.")
+        else:
+            st.warning(f"⚠️ {len(df_ex)} anomalias detectadas no escopo.")
+            st.dataframe(df_ex, use_container_width=True, hide_index=True)
+            
+    else:
+        st.subheader("Extração de Logs Originais")
+        if report_level != "SECAO":
+            st.warning("Selecione uma Seção específica para visualizar logs brutos (por performance).")
+        else:
+            # Heuristic to find the file name
+            pat = f"%o00407-{str(selected_mun).zfill(5)}%{str(selected_sec).zfill(4)}%"
+            q_logs = text("SELECT timestamp, code, message FROM log_eventos WHERE source_file LIKE :pat ORDER BY timestamp")
+            with engine_sql.connect() as conn:
+                df_logs = pd.read_sql(q_logs, conn, params={"pat": pat})
+                
+            if df_logs.empty:
+                st.warning("Logs brutos não encontrados localmente. Podem estar arquivados na Cloud.")
+            else:
+                st.dataframe(df_logs, use_container_width=True, hide_index=True)
+
+    # Reporting Section
+    st.divider()
+    st.subheader("📄 Geração de Relatórios Periciais (Modo Axiom)")
+    col_rep1, col_rep2, col_rep3 = st.columns(3)
+    
+    # Hot-reload the reporting engine to bypass Streamlit stale class cache
+    import importlib
+    import reports.engine
+    importlib.reload(reports.engine)
+    from reports.engine import ReportingEngine
+    rep_engine = ReportingEngine(db_mode='local' if st.session_state.db_mode == 'Local (Ryzen 🚀)' else 'remote')
+    
+    # Active Filters for the Engine
+    active_filters = {
+        "uf": selected_uf,
+        "mun": selected_mun,
+        "zon": selected_zona,
+        "sec": selected_sec
+    }
+
+    with col_rep1:
+        if st.button("🛡️ Gerar Laudo ABNT A4"):
+            with st.spinner(f"Compilando Laudo ABNT ({report_level})..."):
+                path = rep_engine.generate_forensic_report(report_level, report_id, mode='abnt', filters=active_filters)
+                if path:
+                    with open(path, "rb") as f:
+                        st.download_button(f"⬇️ Baixar Laudo {report_level}", f, file_name=os.path.basename(path))
+                else:
+                    st.error("Falha ao gerar PDF.")
+                    
+    with col_rep2:
+        if st.button("📈 Gerar Sumário Estatístico"):
+            with st.spinner(f"Calculando {report_level}..."):
+                path = rep_engine.generate_forensic_report(report_level, report_id, mode='statistical', filters=active_filters)
+                if path:
+                    with open(path, "rb") as f:
+                        st.download_button(f"⬇️ Baixar Sumário {report_level}", f, file_name=os.path.basename(path))
+                else:
+                    st.error("Falha ao gerar PDF.")
+                    
+    with col_rep3:
+        g_status = get_global_report_status()
+        
+        if g_status and g_status["status"] == "running":
+            st.info(f"⏳ Relatório Global: {g_status['percentage']}%")
+            st.progress(g_status['percentage'] / 100)
+            st.caption(f"Status: {g_status.get('status_msg', 'Em andamento...')}")
+            if st.button("🔄 Atualizar Progresso"):
+                st.rerun()
+        elif g_status and g_status["status"] == "done":
+            st.success("✅ Relatório Global 1T concluído!")
+            with open(g_status["file"], "rb") as f:
+                st.download_button("⬇️ BAIXAR RELATÓRIO PDF", f, file_name=os.path.basename(g_status["file"]), type="primary")
+            if st.button("🗑️ Resetar e Gerar Novo"):
+                import subprocess
+                # Delete status to reset
+                Path("reports/global_status.json").unlink(missing_ok=True)
+                subprocess.Popen([sys.executable, "src/reports/global_orchestrator.py"])
+                st.rerun()
+        else:
+            st.write("Relatório Nacional Completo (1T)")
+            if st.button("🌎 Iniciar Geração Global", type="primary"):
+                import subprocess
+                # Ensure the file is gone before starting
+                Path("reports/global_status.json").unlink(missing_ok=True)
+                subprocess.Popen([sys.executable, "src/reports/global_orchestrator.py"])
+                st.info("🚀 Processamento iniciado em background.")
+                time.sleep(2)
+                st.rerun()
 
 with tab4:
     st.subheader("🚀 Monitor de Execução em Tempo Real")
